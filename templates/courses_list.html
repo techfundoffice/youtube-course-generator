@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Library - YouTube to Course Generator</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container my-5">
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-dark mb-4" style="background: linear-gradient(135deg, #6f42c1, #6610f2); border-radius: 10px;">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/courses">
+                    <i class="fas fa-graduation-cap me-2"></i>Course Library
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">
+                                <i class="fas fa-home me-1"></i>Course Generator
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/courses">
+                                <i class="fas fa-list me-1"></i>Generated Courses
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/tests">
+                                <i class="fas fa-vial me-1"></i>Test Dashboard
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/api/stats">
+                                <i class="fas fa-chart-bar me-1"></i>API Stats
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h1 class="h2"><i class="fas fa-graduation-cap me-2"></i>Course Library</h1>
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Generate New Course
+                    </a>
+                </div>
+                <p class="text-muted">Browse previously generated courses from YouTube videos</p>
+            </div>
+        </div>
+
+        <!-- Courses Grid -->
+        {% if courses %}
+        <div class="row">
+            {% for course in courses %}
+            <div class="col-lg-6 col-xl-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="badge bg-{{ 'success' if course.quality_score == 'A+' else 'primary' if course.quality_score == 'A' else 'warning' if course.quality_score == 'B' else 'secondary' }}">
+                                {{ course.quality_score or 'N/A' }}
+                            </span>
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                {{ course.created_at.strftime('%m/%d/%Y') if course.created_at else 'Unknown' }}
+                            </small>
+                        </div>
+                        
+                        <h5 class="card-title">{{ course.course_title or 'Untitled Course' }}</h5>
+                        
+                        {% if course.video_title %}
+                        <p class="text-muted small mb-2">
+                            <i class="fab fa-youtube me-1"></i>
+                            {{ course.video_title[:60] }}{% if course.video_title|length > 60 %}...{% endif %}
+                        </p>
+                        {% endif %}
+                        
+                        {% if course.video_author %}
+                        <p class="text-muted small mb-3">
+                            <i class="fas fa-user me-1"></i>
+                            {{ course.video_author }}
+                        </p>
+                        {% endif %}
+                        
+                        <div class="row text-center mb-3">
+                            <div class="col-4">
+                                <small class="text-muted d-block">Processing</small>
+                                <strong>{{ "%.1f"|format(course.processing_time or 0) }}s</strong>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block">Cost</small>
+                                <strong>${{ "%.3f"|format(course.total_cost or 0) }}</strong>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block">Quality</small>
+                                <strong>{{ course.quality_score or 'N/A' }}</strong>
+                            </div>
+                        </div>
+                        
+                        <a href="/courses/{{ course.id }}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-eye me-2"></i>View Course
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-book-open display-1 text-muted mb-3"></i>
+            <h3 class="text-muted">No courses yet</h3>
+            <p class="text-muted mb-4">Generate your first course from a YouTube video to get started.</p>
+            <a href="/" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Generate Your First Course
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Statistics -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Quick Stats</h5>
+                        <div class="row text-center">
+                            <div class="col-6 col-md-3">
+                                <div class="border-end">
+                                    <h4 class="mb-1">{{ courses|length }}</h4>
+                                    <small class="text-muted">Courses Shown</small>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="border-end">
+                                    <h4 class="mb-1">
+                                        {% set total_time = courses|sum(attribute='processing_time') %}
+                                        {{ "%.1f"|format(total_time or 0) }}s
+                                    </h4>
+                                    <small class="text-muted">Total Processing</small>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="border-end">
+                                    <h4 class="mb-1">
+                                        {% set total_cost = courses|sum(attribute='total_cost') %}
+                                        ${{ "%.3f"|format(total_cost or 0) }}
+                                    </h4>
+                                    <small class="text-muted">Total Cost</small>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <h4 class="mb-1">
+                                    {% set quality_courses = courses|selectattr('quality_score')|list %}
+                                    {% if quality_courses %}
+                                        {% set a_plus = quality_courses|selectattr('quality_score', 'equalto', 'A+')|list|length %}
+                                        {% set a_grade = quality_courses|selectattr('quality_score', 'equalto', 'A')|list|length %}
+                                        {{ "%.0f"|format((a_plus + a_grade) * 100 / quality_courses|length) }}%
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </h4>
+                                <small class="text-muted">High Quality</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
