@@ -1,0 +1,20 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "description": "Transform any YouTube video into a structured 7-day learning course with enterprise-grade reliability and multi-layer redundancy architecture.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@octokit/rest": "^22.0.0",
+    "@playwright/test": "^1.54.2",
+    "playwright": "^1.54.2"
+  }
+}
