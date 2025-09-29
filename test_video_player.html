@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Player Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a1a; color: white; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #0d7377; }
+        .error { background: #7d1538; }
+        .info { background: #1e3a8a; }
+        video { width: 100%; max-width: 640px; }
+        button { padding: 10px 20px; margin: 5px; background: #4ade80; color: black; border: none; border-radius: 5px; cursor: pointer; }
+        .status { margin: 10px 0; padding: 10px; background: #374151; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Video Player Functionality Test</h1>
+        
+        <div class="status">
+            <h3>Test Results:</h3>
+            <div id="test-results"></div>
+        </div>
+        
+        <h3>1. Test Video Serving Endpoint</h3>
+        <button onclick="testVideoEndpoint()">Test /video/dQw4w9WgXcQ.mp4</button>
+        <div id="endpoint-result"></div>
+        
+        <h3>2. Test Video Player</h3>
+        <video id="test-video" controls>
+            <source src="/video/dQw4w9WgXcQ.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div id="player-result"></div>
+        
+        <h3>3. Test Course Generation</h3>
+        <button onclick="testCourseGeneration()">Generate Test Course</button>
+        <div id="course-result"></div>
+        
+        <script>
+            let testResults = [];
+            
+            function addTestResult(test, status, message) {
+                testResults.push({test, status, message, timestamp: new Date().toISOString()});
+                updateResultsDisplay();
+            }
+            
+            function updateResultsDisplay() {
+                const container = document.getElementById('test-results');
+                container.innerHTML = testResults.map(result => 
+                    `<div class="test-result ${result.status}">
+                        <strong>${result.test}:</strong> ${result.message}
+                        <small>(${result.timestamp})</small>
+                    </div>`
+                ).join('');
+            }
+            
+            async function testVideoEndpoint() {
+                try {
+                    addTestResult('Video Endpoint', 'info', 'Testing /video/dQw4w9WgXcQ.mp4...');
+                    
+                    const response = await fetch('/video/dQw4w9WgXcQ.mp4', {method: 'HEAD'});
+                    
+                    if (response.ok) {
+                        const contentType = response.headers.get('content-type');
+                        const contentLength = response.headers.get('content-length');
+                        addTestResult('Video Endpoint', 'success', 
+                            `✓ Endpoint accessible - Type: ${contentType}, Size: ${contentLength} bytes`);
+                    } else {
+                        addTestResult('Video Endpoint', 'error', 
+                            `✗ HTTP ${response.status}: ${response.statusText}`);
+                    }
+                } catch (error) {
+                    addTestResult('Video Endpoint', 'error', `✗ Network error: ${error.message}`);
+                }
+            }
+            
+            async function testCourseGeneration() {
+                try {
+                    addTestResult('Course Generation', 'info', 'Generating course...');
+                    
+                    const formData = new FormData();
+                    formData.append('youtube_url', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+                    
+                    const response = await fetch('/generate', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        const html = await response.text();
+                        if (html.includes('source src="/video/')) {
+                            addTestResult('Course Generation', 'success', '✓ Course generated with proper video URLs');
+                        } else {
+                            addTestResult('Course Generation', 'error', '✗ Course generated but video URLs missing');
+                        }
+                    } else {
+                        addTestResult('Course Generation', 'error', `✗ HTTP ${response.status}`);
+                    }
+                } catch (error) {
+                    addTestResult('Course Generation', 'error', `✗ Error: ${error.message}`);
+                }
+            }
+            
+            // Video player event listeners
+            const video = document.getElementById('test-video');
+            
+            video.addEventListener('loadstart', () => {
+                addTestResult('Video Player', 'info', 'Video loading started...');
+            });
+            
+            video.addEventListener('loadeddata', () => {
+                addTestResult('Video Player', 'success', '✓ Video data loaded successfully');
+            });
+            
+            video.addEventListener('canplay', () => {
+                addTestResult('Video Player', 'success', '✓ Video ready to play');
+            });
+            
+            video.addEventListener('error', (e) => {
+                const error = video.error;
+                let errorMsg = 'Unknown error';
+                if (error) {
+                    switch(error.code) {
+                        case 1: errorMsg = 'MEDIA_ERR_ABORTED'; break;
+                        case 2: errorMsg = 'MEDIA_ERR_NETWORK'; break;
+                        case 3: errorMsg = 'MEDIA_ERR_DECODE'; break;
+                        case 4: errorMsg = 'MEDIA_ERR_SRC_NOT_SUPPORTED'; break;
+                    }
+                }
+                addTestResult('Video Player', 'error', `✗ Video error: ${errorMsg}`);
+            });
+            
+            // Auto-run tests on page load
+            window.onload = function() {
+                addTestResult('Page Load', 'success', '✓ Test page loaded successfully');
+                setTimeout(testVideoEndpoint, 1000);
+            };
+        </script>
+    </div>
+</body>
+</html>

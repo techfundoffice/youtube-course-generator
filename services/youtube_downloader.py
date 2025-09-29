@@ -1,5 +1,5 @@
 """
-Free YouTube MP4 video downloader using yt-dlp as fallback when Apify fails
+YouTube MP4 video downloader using yt-dlp for local storage
 """
 import os
 import logging
@@ -21,7 +21,7 @@ def log_processing_step(session_id: str, step_name: str, status: str, message: s
         logger.info(f"[{session_id}] {step_name}: {status} - {message}")
 
 class YouTubeDownloader:
-    """Free YouTube video downloader using yt-dlp"""
+    """Free video downloader using yt-dlp for YouTube videos"""
     
     def __init__(self):
         self.temp_dir = tempfile.mkdtemp(prefix="youtube_dl_")
@@ -34,51 +34,6 @@ class YouTubeDownloader:
         except:
             pass
     
-    def _auto_upload_to_cloudinary(self, local_file_path: str, filename: str, session_id: Optional[str] = None) -> dict:
-        """Automatically upload downloaded video to Cloudinary"""
-        try:
-            if session_id:
-                log_processing_step(session_id, "Cloudinary Upload", "STARTING", f"Uploading {filename} to cloud storage")
-            
-            from services.cloudinary_service import CloudinaryService
-            cloudinary_service = CloudinaryService()
-            
-            # Upload the video file
-            upload_result = cloudinary_service.upload_video(local_file_path, filename, {'title': filename})
-            
-            if upload_result['success']:
-                if session_id:
-                    log_processing_step(session_id, "Cloudinary Upload", "SUCCESS", f"✓ Video uploaded to premium cloud storage: {upload_result['cloudinary_url']}")
-                
-                return {
-                    'cloudinary_url': upload_result['cloudinary_url'],
-                    'cloudinary_public_id': upload_result['public_id'],
-                    'cloudinary_upload_status': 'success'
-                }
-            else:
-                if session_id:
-                    log_processing_step(session_id, "Cloudinary Upload", "FAILED", f"Upload error: {upload_result['error']}", "WARNING")
-                
-                return {
-                    'cloudinary_url': None,
-                    'cloudinary_public_id': None,
-                    'cloudinary_upload_status': 'failed',
-                    'cloudinary_error': upload_result['error']
-                }
-                
-        except Exception as e:
-            error_msg = f"Cloudinary upload exception: {str(e)}"
-            logger.error(error_msg)
-            
-            if session_id:
-                log_processing_step(session_id, "Cloudinary Upload", "FAILED", error_msg, "WARNING")
-            
-            return {
-                'cloudinary_url': None,
-                'cloudinary_public_id': None,
-                'cloudinary_upload_status': 'failed',
-                'cloudinary_error': str(e)
-            }
     
     def check_ytdlp_available(self) -> bool:
         """Check if yt-dlp is available"""
@@ -105,13 +60,42 @@ class YouTubeDownloader:
             logger.error(f"Error installing yt-dlp: {str(e)}")
             return False
     
-    def download_video(self, youtube_url: str, quality: str = "720p", session_id: Optional[str] = None) -> Dict[str, Any]:
+    def download_video(self, video_url: str, quality: str = "720p", session_id: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Download video using yt-dlp for YouTube
+        
+        Args:
+            video_url: YouTube video URL
+            quality: Video quality (720p, 480p, best, worst)
+            session_id: Session ID for logging
+            
+        Returns:
+            Dict containing download information
+        """
+        # Validate URL type
+        try:
+            from utils.validators import detect_source
+            source = detect_source(video_url)
+            
+            if source == 'youtube':
+                return self._download_youtube_video(video_url, quality, session_id)
+            else:
+                return {
+                    'success': False,
+                    'error': f'Unsupported video source: {source}. Only YouTube URLs are supported.'
+                }
+        except ImportError:
+            # Fallback to YouTube-only handling if validators not available
+            return self._download_youtube_video(video_url, quality, session_id)
+    
+    def _download_youtube_video(self, youtube_url: str, quality: str = "720p", session_id: Optional[str] = None) -> Dict[str, Any]:
         """
         Download YouTube video using yt-dlp
         
         Args:
             youtube_url: YouTube video URL
             quality: Video quality (720p, 480p, best, worst)
+            session_id: Session ID for logging
             
         Returns:
             Dict containing download information
@@ -132,37 +116,62 @@ class YouTubeDownloader:
                 if session_id:
                     log_processing_step(session_id, "yt-dlp Setup", "SUCCESS", "yt-dlp package installed successfully")
             
-            # Configure quality selector
+            # Configure quality selector with SABR fallbacks - avoid problematic formats
             if quality == "720p":
-                format_selector = "best[height<=720]"
+                format_selector = "best[height<=720][protocol!*=dash]/best[height<=480][protocol!*=dash]/best[height<=360]/worst"
             elif quality == "480p":
-                format_selector = "best[height<=480]"
+                format_selector = "best[height<=480][protocol!*=dash]/best[height<=360]/worst"
             elif quality == "best":
-                format_selector = "best"
+                format_selector = "best[protocol!*=dash]/worst"
             else:
-                format_selector = "worst"
+                format_selector = "worst[protocol!*=dash]/worst"
             
             if session_id:
                 log_processing_step(session_id, "yt-dlp Metadata", "FETCHING", f"Getting video information from YouTube (quality: {quality})")
             
-            # Get video info first
+            # Get video info first with comprehensive SABR workarounds
             info_cmd = [
                 'yt-dlp',
                 '--dump-json',
                 '--no-download',
+                '--extractor-args', 'youtube:player_client=android,web;skip=dash,hls',
+                '--user-agent', 'Mozilla/5.0 (Linux; Android 11; SM-G973F) AppleWebKit/537.36',
+                '--no-warnings',
+                '--socket-timeout', '30',
+                '--retries', '2',
                 youtube_url
             ]
             
             logger.info(f"Getting video info for: {youtube_url}")
-            info_result = subprocess.run(info_cmd, capture_output=True, text=True, timeout=30)
+            info_result = subprocess.run(info_cmd, capture_output=True, text=True, timeout=45)
             
+            # If Android client fails, try multiple fallbacks for SABR issues
             if info_result.returncode != 0:
-                if session_id:
-                    log_processing_step(session_id, "yt-dlp Metadata", "FAILED", f"Failed to get video metadata: {info_result.stderr[:100]}", "ERROR")
-                return {
-                    'success': False,
-                    'error': f'Failed to get video info: {info_result.stderr}'
-                }
+                logger.warning("Android client failed, trying web client...")
+                fallback_clients = ['web', 'ios', 'mweb']
+                
+                for client in fallback_clients:
+                    fallback_cmd = [
+                        'yt-dlp',
+                        '--dump-json',
+                        '--no-download',
+                        '--extractor-args', f'youtube:player_client={client}',
+                        '--no-warnings',
+                        youtube_url
+                    ]
+                    fallback_result = subprocess.run(fallback_cmd, capture_output=True, text=True, timeout=30)
+                    if fallback_result.returncode == 0:
+                        info_result = fallback_result
+                        logger.info(f"Successfully used {client} client for metadata extraction")
+                        break
+                else:
+                    # All clients failed
+                    if session_id:
+                        log_processing_step(session_id, "yt-dlp Metadata", "FAILED", f"Failed to get video metadata with all clients: {info_result.stderr[:100]}", "ERROR")
+                    return {
+                        'success': False,
+                        'error': f'Failed to get video info with all player clients: {info_result.stderr}'
+                    }
             
             video_info = json.loads(info_result.stdout)
             title = video_info.get('title', 'Unknown Title')[:50]
@@ -172,12 +181,21 @@ class YouTubeDownloader:
             if session_id:
                 log_processing_step(session_id, "yt-dlp Metadata", "SUCCESS", f"Video: '{title}' ({duration_str})")
             
-            # Download the video
+            # Download the video with comprehensive SABR workarounds
             output_template = os.path.join(self.temp_dir, f"%(id)s.%(ext)s")
             download_cmd = [
                 'yt-dlp',
                 '-f', format_selector,
                 '-o', output_template,
+                '--extractor-args', 'youtube:player_client=android,web;skip=dash,hls',
+                '--user-agent', 'Mozilla/5.0 (Linux; Android 11; SM-G973F) AppleWebKit/537.36',
+                '--no-warnings',
+                '--socket-timeout', '45',
+                '--retries', '2',
+                '--fragment-retries', '2',
+                '--retry-sleep', '2',
+                '--no-continue',
+                '--geo-bypass',
                 youtube_url
             ]
             
@@ -185,15 +203,55 @@ class YouTubeDownloader:
                 log_processing_step(session_id, "yt-dlp Download", "DOWNLOADING", f"Downloading {quality} MP4 video (this may take 10-30 seconds)")
             
             logger.info(f"Downloading video with quality: {quality}")
-            download_result = subprocess.run(download_cmd, capture_output=True, text=True, timeout=300)
+            download_result = subprocess.run(download_cmd, capture_output=True, text=True, timeout=180)
             
+            # If initial download fails due to SABR, try fallback clients
             if download_result.returncode != 0:
-                if session_id:
-                    log_processing_step(session_id, "yt-dlp Download", "FAILED", f"Download failed: {download_result.stderr[:100]}", "ERROR")
-                return {
-                    'success': False,
-                    'error': f'Download failed: {download_result.stderr}'
-                }
+                logger.warning("Initial download failed, trying fallback clients for SABR workaround...")
+                fallback_clients = ['web', 'ios', 'mweb']
+                
+                for client in fallback_clients:
+                    fallback_download_cmd = [
+                        'yt-dlp',
+                        '-f', format_selector,
+                        '-o', output_template,
+                        '--extractor-args', f'youtube:player_client={client}',
+                        '--no-warnings',
+                        '--retries', '2',
+                        '--fragment-retries', '2',
+                        '--retry-sleep', '1',
+                        youtube_url
+                    ]
+                    
+                    fallback_result = subprocess.run(fallback_download_cmd, capture_output=True, text=True, timeout=300)
+                    if fallback_result.returncode == 0:
+                        download_result = fallback_result
+                        logger.info(f"Successfully downloaded using {client} client")
+                        break
+                else:
+                    # All download attempts failed - return graceful fallback
+                    if session_id:
+                        log_processing_step(session_id, "yt-dlp Download", "FAILED", f"Download failed with all clients due to SABR streaming restrictions. Continuing without video.", "WARNING")
+                    
+                    # Return a fallback response that allows course generation to continue
+                    return {
+                        'success': False,
+                        'mp4_video_url': None,
+                        'mp4_download_status': 'failed_sabr_restrictions',
+                        'mp4_file_size': 0,
+                        'local_path': None,
+                        'video_id': video_info.get('id', 'unknown'),
+                        'title': video_info.get('title', ''),
+                        'duration': video_info.get('duration', 0),
+                        'thumbnail_url': video_info.get('thumbnail', ''),
+                        'description': video_info.get('description', ''),
+                        'view_count': video_info.get('view_count', 0),
+                        'uploader': video_info.get('uploader', ''),
+                        'upload_date': video_info.get('upload_date', ''),
+                        'filename': None,
+                        'source': 'youtube-downloader-fallback',
+                        'error': 'YouTube SABR streaming prevents download - video metadata available for course generation'
+                    }
             
             # Find the downloaded file
             video_id = video_info.get('id', 'unknown')
@@ -233,13 +291,13 @@ class YouTubeDownloader:
             video_filename = os.path.basename(downloaded_file)
             http_video_url = f"/video/{video_filename}"
             
-            # CORE DOWNLOAD RESULT (works independently of cloudinary)
-            download_result = {
+            # LOCAL DOWNLOAD RESULT - Simple and reliable
+            return {
                 'success': True,
-                'mp4_video_url': http_video_url,  # HTTP URL for browser access
+                'mp4_video_url': http_video_url,
                 'mp4_download_status': 'completed',
                 'mp4_file_size': file_size,
-                'local_path': downloaded_file,  # Local file path for Cloudinary upload
+                'local_path': permanent_path,
                 'video_id': video_id,
                 'title': video_info.get('title', ''),
                 'duration': video_info.get('duration', 0),
@@ -252,26 +310,28 @@ class YouTubeDownloader:
                 'source': 'youtube-downloader'
             }
             
-            # TRY CLOUDINARY UPLOAD (optional - doesn't break local download if it fails)
-            try:
-                cloudinary_result = self._auto_upload_to_cloudinary(downloaded_file, downloaded_files[0], session_id)
-                download_result.update(cloudinary_result)
-            except Exception as e:
-                logger.warning(f"Cloudinary upload failed but local download completed: {str(e)}")
-                # Add default cloudinary values
-                download_result.update({
-                    'cloudinary_url': None,
-                    'cloudinary_public_id': None,
-                    'cloudinary_upload_status': 'failed',
-                    'cloudinary_thumbnail': None
-                })
-            
-            return download_result
-            
         except subprocess.TimeoutExpired:
+            if session_id:
+                log_processing_step(session_id, "yt-dlp Download", "TIMEOUT", "Download timeout due to SABR streaming issues. Continuing without video.", "WARNING")
+            
+            # Return fallback response on timeout to allow course generation to continue
             return {
                 'success': False,
-                'error': 'Download timeout (over 5 minutes)'
+                'mp4_video_url': None,
+                'mp4_download_status': 'timeout_sabr_restrictions',
+                'mp4_file_size': 0,
+                'local_path': None,
+                'video_id': 'unknown',
+                'title': 'Unknown Video',
+                'duration': 0,
+                'thumbnail_url': '',
+                'description': '',
+                'view_count': 0,
+                'uploader': '',
+                'upload_date': '',
+                'filename': None,
+                'source': 'youtube-downloader-timeout',
+                'error': 'Download timeout due to YouTube SABR streaming restrictions'
             }
         except Exception as e:
             logger.error(f"YouTube download error: {str(e)}")
@@ -279,6 +339,7 @@ class YouTubeDownloader:
                 'success': False,
                 'error': str(e)
             }
+    
     
     def get_video_info_only(self, youtube_url: str) -> Dict[str, Any]:
         """Get video information without downloading"""
@@ -294,6 +355,8 @@ class YouTubeDownloader:
                 'yt-dlp',
                 '--dump-json',
                 '--no-download',
+                '--extractor-args', 'youtube:player_client=android',
+                '--no-warnings',
                 youtube_url
             ]
             

@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MP4 Download Progress - YouTube Course Generator</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .progress-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .progress-bar-custom {
+            transition: width 0.3s ease;
+            background: linear-gradient(45deg, #28a745, #20c997);
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-running {
+            background: #17a2b8;
+            animation: pulse 1.5s infinite;
+        }
+        .status-completed {
+            background: #28a745;
+        }
+        .status-failed {
+            background: #dc3545;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .log-container {
+            max-height: 400px;
+            overflow-y: auto;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+        .log-line {
+            border-left: 3px solid transparent;
+            padding-left: 8px;
+            transition: background-color 0.2s;
+        }
+        .log-line:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-left-color: #6f42c1;
+        }
+        .log-message {
+            word-break: break-all;
+        }
+        .metric-card {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            border: none;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-dark mb-4" style="background: linear-gradient(135deg, #6f42c1, #6610f2); border-radius: 10px;">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">
+                    <i class="fas fa-youtube me-2"></i>Course Generator
+                </a>
+                <div class="ms-auto">
+                    <a href="/" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Generator
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="progress-container">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <h2><i class="fas fa-download me-2"></i>MP4 Download Progress</h2>
+                <p class="text-muted">Real-time monitoring of Apify video download</p>
+            </div>
+
+            <!-- Progress Display -->
+            <div class="card metric-card mb-4">
+                <div class="card-body">
+                    <!-- Status Indicator -->
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="status-indicator status-running" id="statusIndicator"></span>
+                        <h5 class="mb-0" id="statusText">Initializing...</h5>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Download Progress</span>
+                            <span id="progressPercentage">0%</span>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar progress-bar-custom" 
+                                 role="progressbar" 
+                                 id="progressBar"
+                                 style="width: 0%"
+                                 aria-valuenow="0" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metrics -->
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="metric-box">
+                                <h6 class="text-info" id="elapsedTime">0s</h6>
+                                <small class="text-muted">Elapsed Time</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-box">
+                                <h6 class="text-warning" id="runId">-</h6>
+                                <small class="text-muted">Run ID</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-box">
+                                <h6 class="text-success" id="fileSize">-</h6>
+                                <small class="text-muted">File Size</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-box">
+                                <h6 class="text-primary" id="estimatedRemaining">-</h6>
+                                <small class="text-muted">Est. Remaining</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Log Output -->
+            <div class="card metric-card mb-4" id="logCard">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-terminal me-2"></i>Live Download Logs
+                    </h5>
+                    <div>
+                        <button class="btn btn-outline-light btn-sm" id="clearLogsBtn">
+                            <i class="fas fa-trash me-1"></i>Clear
+                        </button>
+                        <button class="btn btn-outline-light btn-sm" id="toggleAutoScrollBtn">
+                            <i class="fas fa-arrow-down me-1"></i>Auto-scroll
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="log-container" id="logOutput">
+                        <div class="text-muted p-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Waiting for download to start... Live logs will appear here.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- YouTube Video Info -->
+            <div class="card mb-4" id="videoInfoCard" style="display: none;">
+                <div class="card-header">
+                    <h5><i class="fas fa-video me-2"></i>Video Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6 id="videoTitle">Loading...</h6>
+                            <p class="text-muted mb-2" id="videoUrl"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="youtubeUrlInput"
+                                       placeholder="https://www.youtube.com/watch?v=..."
+                                       value="https://youtu.be/E2GIZrsDvuM?si=RD5tguUrlwK66boO">
+                                <button class="btn btn-primary" 
+                                        type="button" 
+                                        id="startDownloadBtn">
+                                    <i class="fas fa-play me-1"></i>Start Download
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-outline-secondary me-2" id="refreshBtn">
+                                <i class="fas fa-sync-alt me-1"></i>Refresh
+                            </button>
+                            <button class="btn btn-outline-danger" id="stopBtn" disabled>
+                                <i class="fas fa-stop me-1"></i>Stop Current Run
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="card" id="resultsCard" style="display: none;">
+                <div class="card-header">
+                    <h5><i class="fas fa-check-circle me-2"></i>Download Complete</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <strong>Success!</strong> Video downloaded successfully.
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Video URL:</strong> <span id="resultVideoUrl">-</span></p>
+                            <p><strong>File Size:</strong> <span id="resultFileSize">-</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="#" class="btn btn-success" id="downloadBtn" target="_blank">
+                                <i class="fas fa-download me-1"></i>Download MP4
+                            </a>
+                            <a href="/" class="btn btn-primary ms-2">
+                                <i class="fas fa-graduation-cap me-1"></i>Generate Course
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        class ProgressMonitor {
+            constructor() {
+                this.runId = null;
+                this.polling = false;
+                this.pollInterval = null;
+                this.startTime = null;
+                this.initializeElements();
+                this.bindEvents();
+                
+                // Check if run_id is in URL params
+                const urlParams = new URLSearchParams(window.location.search);
+                const runIdParam = urlParams.get('run_id');
+                if (runIdParam) {
+                    this.runId = runIdParam;
+                    this.startMonitoring();
+                }
+            }
+
+            initializeElements() {
+                this.elements = {
+                    statusIndicator: document.getElementById('statusIndicator'),
+                    statusText: document.getElementById('statusText'),
+                    progressBar: document.getElementById('progressBar'),
+                    progressPercentage: document.getElementById('progressPercentage'),
+                    elapsedTime: document.getElementById('elapsedTime'),
+                    runId: document.getElementById('runId'),
+                    fileSize: document.getElementById('fileSize'),
+                    estimatedRemaining: document.getElementById('estimatedRemaining'),
+                    youtubeUrlInput: document.getElementById('youtubeUrlInput'),
+                    startDownloadBtn: document.getElementById('startDownloadBtn'),
+                    refreshBtn: document.getElementById('refreshBtn'),
+                    stopBtn: document.getElementById('stopBtn'),
+                    videoInfoCard: document.getElementById('videoInfoCard'),
+                    videoTitle: document.getElementById('videoTitle'),
+                    videoUrl: document.getElementById('videoUrl'),
+                    resultsCard: document.getElementById('resultsCard'),
+                    resultVideoUrl: document.getElementById('resultVideoUrl'),
+                    resultFileSize: document.getElementById('resultFileSize'),
+                    downloadBtn: document.getElementById('downloadBtn')
+                };
+            }
+
+            bindEvents() {
+                this.elements.startDownloadBtn.addEventListener('click', () => this.startDownload());
+                this.elements.refreshBtn.addEventListener('click', () => this.refreshProgress());
+                this.elements.stopBtn.addEventListener('click', () => this.stopMonitoring());
+                
+                // Log window controls
+                document.getElementById('clearLogsBtn').addEventListener('click', () => this.clearLogs());
+                document.getElementById('toggleAutoScrollBtn').addEventListener('click', () => this.toggleAutoScroll());
+                
+                this.autoScroll = true;
+            }
+
+            async startDownload() {
+                const youtubeUrl = this.elements.youtubeUrlInput.value.trim();
+                if (!youtubeUrl) {
+                    alert('Please enter a YouTube URL');
+                    return;
+                }
+
+                this.elements.startDownloadBtn.disabled = true;
+                this.elements.stopBtn.disabled = false;
+                
+                try {
+                    const response = await fetch('/api/apify/start', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ youtube_url: youtubeUrl })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.runId = result.run_id;
+                        this.elements.runId.textContent = this.runId.substring(0, 8) + '...';
+                        this.elements.videoUrl.textContent = youtubeUrl;
+                        this.elements.videoInfoCard.style.display = 'block';
+                        this.startMonitoring();
+                    } else {
+                        alert('Failed to start download: ' + result.error);
+                        this.elements.startDownloadBtn.disabled = false;
+                        this.elements.stopBtn.disabled = true;
+                    }
+                } catch (error) {
+                    alert('Error starting download: ' + error.message);
+                    this.elements.startDownloadBtn.disabled = false;
+                    this.elements.stopBtn.disabled = true;
+                }
+            }
+
+            startMonitoring() {
+                if (this.polling) return;
+                
+                this.polling = true;
+                this.startTime = Date.now();
+                this.updateStatus('RUNNING', 'Starting download...');
+                
+                // Poll every 3 seconds for real-time updates (reduced frequency for stability)
+                this.pollInterval = setInterval(() => {
+                    this.checkProgress();
+                }, 3000);
+                
+                // Initial check
+                this.checkProgress();
+            }
+
+            async checkProgress() {
+                if (!this.runId) return;
+
+                try {
+                    // Fetch progress and logs simultaneously
+                    const [progressResponse, logsResponse] = await Promise.all([
+                        fetch(`/api/apify/progress/${this.runId}`),
+                        fetch(`/api/apify/logs/${this.runId}`)
+                    ]);
+
+                    const progress = await progressResponse.json();
+                    const logs = await logsResponse.json();
+
+                    if (progress.success) {
+                        this.updateProgress(progress);
+                    } else {
+                        console.error('Progress check failed:', progress.error);
+                    }
+
+                    if (logs.success) {
+                        this.updateLogs(logs.logs);
+                    } else {
+                        console.error('Log fetch failed:', logs.error);
+                    }
+                } catch (error) {
+                    console.error('Error checking progress:', error);
+                }
+            }
+
+            updateProgress(progress) {
+                // Update status
+                this.updateStatus(progress.status, progress.status_message);
+                
+                // Update progress bar with REAL percentage from Apify logs
+                const percentage = Math.round(progress.progress_percentage || 0);
+                this.elements.progressBar.style.width = percentage + '%';
+                this.elements.progressBar.setAttribute('aria-valuenow', percentage);
+                this.elements.progressPercentage.textContent = percentage + '%';
+                
+                // Update elapsed time
+                if (this.startTime) {
+                    const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+                    this.elements.elapsedTime.textContent = this.formatTime(elapsed);
+                    
+                    // Estimate remaining time based on current progress
+                    if (percentage > 0) {
+                        const totalEstimated = (elapsed / percentage) * 100;
+                        const remaining = Math.max(0, totalEstimated - elapsed);
+                        this.elements.estimatedRemaining.textContent = this.formatTime(Math.round(remaining));
+                    }
+                }
+                
+                // Update file size if available
+                if (progress.file_size) {
+                    this.elements.fileSize.textContent = this.formatFileSize(progress.file_size);
+                }
+                
+                // Handle completion
+                if (progress.status === 'SUCCEEDED') {
+                    this.handleCompletion(progress);
+                } else if (progress.status === 'FAILED' || progress.status === 'ABORTED') {
+                    this.handleFailure(progress);
+                }
+            }
+
+            updateStatus(status, message) {
+                this.elements.statusText.textContent = message || status;
+                
+                // Update status indicator
+                this.elements.statusIndicator.className = 'status-indicator';
+                if (status === 'SUCCEEDED') {
+                    this.elements.statusIndicator.classList.add('status-completed');
+                } else if (status === 'FAILED' || status === 'ABORTED') {
+                    this.elements.statusIndicator.classList.add('status-failed');
+                } else {
+                    this.elements.statusIndicator.classList.add('status-running');
+                }
+            }
+
+            handleCompletion(progress) {
+                this.stopMonitoring();
+                this.elements.progressBar.style.width = '100%';
+                this.elements.progressPercentage.textContent = '100%';
+                
+                if (progress.video_url) {
+                    this.elements.resultVideoUrl.textContent = progress.filename || progress.video_url;
+                    this.elements.downloadBtn.href = progress.video_url;
+                    this.elements.downloadBtn.style.display = 'inline-block';
+                    
+                    // Update download button text with filename
+                    if (progress.filename) {
+                        this.elements.downloadBtn.innerHTML = `<i class="fas fa-download me-1"></i>Download ${progress.filename}`;
+                    }
+                } else {
+                    // Show message if no MP4 available
+                    this.elements.resultVideoUrl.textContent = 'MP4 file not available (possible download error)';
+                }
+                
+                if (progress.file_size && progress.file_size > 0) {
+                    this.elements.resultFileSize.textContent = this.formatFileSize(progress.file_size);
+                } else {
+                    this.elements.resultFileSize.textContent = 'Unknown';
+                }
+                
+                this.elements.resultsCard.style.display = 'block';
+                this.elements.startDownloadBtn.disabled = false;
+                this.elements.stopBtn.disabled = true;
+            }
+
+            handleFailure(progress) {
+                this.stopMonitoring();
+                this.elements.startDownloadBtn.disabled = false;
+                this.elements.stopBtn.disabled = true;
+                alert('Download failed: ' + (progress.status_message || 'Unknown error'));
+            }
+
+            async stopMonitoring() {
+                // Stop the active Apify run if there is one
+                if (this.runId) {
+                    try {
+                        this.elements.stopBtn.disabled = true;
+                        this.elements.stopBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Stopping...';
+                        
+                        const response = await fetch(`/api/apify/stop/${this.runId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success && result.stopped) {
+                            this.updateStatus('ABORTED', 'Download stopped by user');
+                            alert('Download stopped successfully');
+                        } else {
+                            console.warn('Stop request may have failed:', result);
+                            alert('Stop request sent, but run may have already completed');
+                        }
+                        
+                    } catch (error) {
+                        console.error('Error stopping run:', error);
+                        alert('Error stopping download: ' + error.message);
+                    } finally {
+                        this.elements.stopBtn.innerHTML = '<i class="fas fa-stop me-1"></i>Stop Current Run';
+                    }
+                }
+                
+                // Stop local monitoring
+                this.polling = false;
+                if (this.pollInterval) {
+                    clearInterval(this.pollInterval);
+                    this.pollInterval = null;
+                }
+                
+                // Re-enable controls
+                this.elements.startDownloadBtn.disabled = false;
+                this.elements.stopBtn.disabled = true;
+            }
+
+            refreshProgress() {
+                if (this.runId && this.polling) {
+                    this.checkProgress();
+                }
+            }
+
+            formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins}m ${secs}s`;
+            }
+
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 B';
+                const k = 1024;
+                const sizes = ['B', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+            }
+
+            updateLogs(logsText) {
+                const logOutput = document.getElementById('logOutput');
+                
+                if (!logsText || logsText === this.lastLogsText) {
+                    return; // No new logs
+                }
+                
+                this.lastLogsText = logsText;
+                
+                // Parse and format the logs
+                const formattedLogs = this.formatLogs(logsText);
+                logOutput.innerHTML = formattedLogs;
+                
+                // Auto-scroll to bottom if enabled
+                if (this.autoScroll) {
+                    logOutput.scrollTop = logOutput.scrollHeight;
+                }
+            }
+
+            formatLogs(logsText) {
+                if (!logsText) {
+                    return '<div class="text-muted p-3"><i class="fas fa-info-circle me-2"></i>No logs available yet...</div>';
+                }
+
+                // Split logs into lines and format them
+                const lines = logsText.split('\n');
+                let formattedLines = [];
+
+                lines.forEach(line => {
+                    if (!line.trim()) return;
+                    
+                    // Parse timestamp and log level
+                    const timestampMatch = line.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)/);
+                    const timestamp = timestampMatch ? timestampMatch[1] : '';
+                    
+                    let logLevel = 'INFO';
+                    let logClass = 'text-info';
+                    let icon = 'fas fa-info-circle';
+                    
+                    if (line.includes('ERROR')) {
+                        logLevel = 'ERROR';
+                        logClass = 'text-danger';
+                        icon = 'fas fa-exclamation-triangle';
+                    } else if (line.includes('WARN')) {
+                        logLevel = 'WARN';
+                        logClass = 'text-warning';
+                        icon = 'fas fa-exclamation-circle';
+                    } else if (line.includes('Downloading:')) {
+                        logLevel = 'PROGRESS';
+                        logClass = 'text-success';
+                        icon = 'fas fa-download';
+                    } else if (line.includes('INFO')) {
+                        logLevel = 'INFO';
+                        logClass = 'text-info';
+                        icon = 'fas fa-info-circle';
+                    }
+
+                    // Extract progress percentage if present
+                    const progressMatch = line.match(/(\d+(?:\.\d+)?%)/);
+                    const progress = progressMatch ? progressMatch[1] : '';
+
+                    // Clean up the log message
+                    let message = line;
+                    if (timestamp) {
+                        message = line.substring(timestamp.length).trim();
+                    }
+
+                    // Create formatted line
+                    formattedLines.push(`
+                        <div class="log-line mb-1">
+                            <span class="text-muted small">${timestamp ? new Date(timestamp).toLocaleTimeString() : ''}</span>
+                            <span class="${logClass} me-2">
+                                <i class="${icon}"></i>
+                                ${logLevel}
+                            </span>
+                            <span class="log-message">${this.escapeHtml(message)}</span>
+                            ${progress ? `<span class="badge bg-primary ms-2">${progress}</span>` : ''}
+                        </div>
+                    `);
+                });
+
+                return formattedLines.join('');
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            clearLogs() {
+                const logOutput = document.getElementById('logOutput');
+                logOutput.innerHTML = '<div class="text-muted p-3"><i class="fas fa-trash me-2"></i>Logs cleared. New logs will appear here.</div>';
+                this.lastLogsText = '';
+            }
+
+            toggleAutoScroll() {
+                this.autoScroll = !this.autoScroll;
+                const btn = document.getElementById('toggleAutoScrollBtn');
+                const icon = btn.querySelector('i');
+                
+                if (this.autoScroll) {
+                    icon.className = 'fas fa-arrow-down me-1';
+                    btn.classList.remove('btn-outline-warning');
+                    btn.classList.add('btn-outline-light');
+                } else {
+                    icon.className = 'fas fa-pause me-1';
+                    btn.classList.remove('btn-outline-light');
+                    btn.classList.add('btn-outline-warning');
+                }
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new ProgressMonitor();
+        });
+    </script>
+</body>
+</html>

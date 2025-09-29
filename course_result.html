@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Generated - YouTube Course Generator</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-dark mb-4" style="background: linear-gradient(135deg, #6f42c1, #6610f2); border-radius: 10px;">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">
+                    <i class="fas fa-youtube me-2"></i>Course Generator
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">
+                                <i class="fas fa-home me-1"></i>Course Generator
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/courses">
+                                <i class="fas fa-list me-1"></i>Generated Courses
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/tests">
+                                <i class="fas fa-vial me-1"></i>Test Dashboard
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/api/stats">
+                                <i class="fas fa-chart-bar me-1"></i>API Stats
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">
+                                <i class="fas fa-plus me-1"></i>New Course
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <header class="text-center py-4 border-bottom">
+            <h1 class="h3">
+                <i class="fas fa-graduation-cap text-primary me-2"></i>
+                Course Generated Successfully
+            </h1>
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mt-2">
+                <ol class="breadcrumb justify-content-center">
+                    <li class="breadcrumb-item"><a href="/">Course Generator</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Course Result</li>
+                </ol>
+            </nav>
+        </header>
+
+        <main class="py-4">
+            <!-- Processing Metrics -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-success">
+                        <div class="card-header bg-success">
+                            <h5 class="card-title mb-0 text-white">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Course Generated Successfully
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-3 text-center">
+                                    <div class="metric-box">
+                                        <h4 class="text-success">B</h4>
+                                        <small class="text-muted">Quality Grade</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-center">
+                                    <div class="metric-box">
+                                        <h4 class="text-info">0.0s</h4>
+                                        <small class="text-muted">Processing Time</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-center">
+                                    <div class="metric-box">
+                                        <h4 class="text-warning">$0.0000</h4>
+                                        <small class="text-muted">Total Cost</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-center">
+                                    <div class="metric-box">
+                                        <h4 class="text-primary">0.0%</h4>
+                                        <small class="text-muted">Success Rate</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course Overview -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title mb-0">
+                                <i class="fas fa-book-open me-2"></i>
+                                7-Day Learning Course: YouTube Video Course
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">A structured 7-day course based on the YouTube video &#39;YouTube Video Course&#39; by Unknown Creator. Learn from this video content</p>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <strong>Target Audience:</strong> Students and lifelong learners<br>
+                                    <strong>Difficulty Level:</strong> Beginner to Intermediate
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Estimated Total Time:</strong> 8-12 hours<br>
+                                    <strong>Number of Days:</strong> 7 days
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MP4 Video Display -->
+            
+            <!-- Debug Info: No MP4 Video Available -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>MP4 Video Not Available</strong>
+                        <p class="mb-0 mt-2">The MP4 video download may have failed or is still in progress. The course content is available below.</p>
+                        <small class="text-muted">
+                            Debug info: mp4_video_url = "Not set", 
+                            mp4_download_status = "Not set"
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+
+            <!-- URL Comparison Dataframe -->
+            
+
+            <!-- Daily Course Structure -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h3 class="mb-3">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        7-Day Course Structure
+                    </h3>
+                    
+                    <div class="accordion" id="courseAccordion">
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading1">
+                                <button class="accordion-button " 
+                                        type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapse1" 
+                                        aria-expanded="true" 
+                                        aria-controls="collapse1">
+                                    <div class="w-100 d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <i class="fas fa-calendar-day me-2"></i>
+                                            Day 1: Introduction and Overview
+                                        </span>
+                                        <small class="text-muted me-3">1 hour 12 minutes</small>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse1" 
+                                 class="accordion-collapse collapse show" 
+                                 aria-labelledby="heading1" 
+                                 data-bs-parent="#courseAccordion">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-bullseye me-2"></i>Learning Objectives</h6>
+                                            <ul class="list-group list-group-flush mb-3">
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Understand introduction and overview from the video content
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Identify main themes and concepts
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Set personal learning goals
+                                                </li>
+                                                
+                                            </ul>
+
+                                            <h6><i class="fas fa-lightbulb me-2"></i>Key Takeaways</h6>
+                                            <ul class="list-group list-group-flush mb-3">
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Key insights about introduction and overview
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Practical skills and knowledge gained
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Areas for continued development
+                                                </li>
+                                                
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-tasks me-2"></i>Daily Activities</h6>
+                                            <div class="list-group mb-3">
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Watch
+                                                            </h6>
+                                                            <p class="mb-1">Watch the video content carefully</p>
+                                                        </div>
+                                                        <small class="text-muted">30-45 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Note-Taking
+                                                            </h6>
+                                                            <p class="mb-1">Take notes on main topics and themes</p>
+                                                        </div>
+                                                        <small class="text-muted">20 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Reflection
+                                                            </h6>
+                                                            <p class="mb-1">Reflect on your learning goals</p>
+                                                        </div>
+                                                        <small class="text-muted">15 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                            </div>
+
+                                            
+                                            <h6><i class="fas fa-home me-2"></i>Homework</h6>
+                                            <div class="alert alert-info">
+                                                Review your notes and identify questions for deeper exploration
+                                            </div>
+                                            
+                                        </div>
+                                    </div>
+                                    
+                                    
+                                    <div class="mt-3">
+                                        <h6><i class="fas fa-file-alt me-2"></i>Content Summary</h6>
+                                        <p class="text-muted">Focus on introduction and overview related to the video content</p>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading2">
+                                <button class="accordion-button collapsed" 
+                                        type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapse2" 
+                                        aria-expanded="false" 
+                                        aria-controls="collapse2">
+                                    <div class="w-100 d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <i class="fas fa-calendar-day me-2"></i>
+                                            Day 2: Core Concepts - Part 1
+                                        </span>
+                                        <small class="text-muted me-3">1 hour 52 minutes</small>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse2" 
+                                 class="accordion-collapse collapse " 
+                                 aria-labelledby="heading2" 
+                                 data-bs-parent="#courseAccordion">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-bullseye me-2"></i>Learning Objectives</h6>
+                                            <ul class="list-group list-group-flush mb-3">
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Understand core concepts - part 1 from the video content
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Master key principles
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Build foundational understanding
+                                                </li>
+                                                
+                                            </ul>
+
+                                            <h6><i class="fas fa-lightbulb me-2"></i>Key Takeaways</h6>
+                                            <ul class="list-group list-group-flush mb-3">
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Key insights about core concepts - part 1
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Practical skills and knowledge gained
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Areas for continued development
+                                                </li>
+                                                
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-tasks me-2"></i>Daily Activities</h6>
+                                            <div class="list-group mb-3">
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Watch
+                                                            </h6>
+                                                            <p class="mb-1">Watch the video content carefully</p>
+                                                        </div>
+                                                        <small class="text-muted">30-45 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Analysis
+                                                            </h6>
+                                                            <p class="mb-1">Analyze the core concepts - part 1 presented</p>
+                                                        </div>
+                                                        <small class="text-muted">30 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Practice
+                                                            </h6>
+                                                            <p class="mb-1">Practice key concepts</p>
+                                                        </div>
+                                                        <small class="text-muted">45 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                            </div>
+
+                                            
+                                            <h6><i class="fas fa-home me-2"></i>Homework</h6>
+                                            <div class="alert alert-info">
+                                                Practice the concepts learned about core concepts - part 1
+                                            </div>
+                                            
+                                        </div>
+                                    </div>
+                                    
+                                    
+                                    <div class="mt-3">
+                                        <h6><i class="fas fa-file-alt me-2"></i>Content Summary</h6>
+                                        <p class="text-muted">Focus on core concepts - part 1 related to the video content</p>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading3">
+                                <button class="accordion-button collapsed" 
+                                        type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapse3" 
+                                        aria-expanded="false" 
+                                        aria-controls="collapse3">
+                                    <div class="w-100 d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <i class="fas fa-calendar-day me-2"></i>
+                                            Day 3: Core Concepts - Part 2
+                                        </span>
+                                        <small class="text-muted me-3">1 hour 52 minutes</small>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse3" 
+                                 class="accordion-collapse collapse " 
+                                 aria-labelledby="heading3" 
+                                 data-bs-parent="#courseAccordion">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-bullseye me-2"></i>Learning Objectives</h6>
+                                            <ul class="list-group list-group-flush mb-3">
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Understand core concepts - part 2 from the video content
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Master key principles
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Build foundational understanding
+                                                </li>
+                                                
+                                            </ul>
+
+                                            <h6><i class="fas fa-lightbulb me-2"></i>Key Takeaways</h6>
+                                            <ul class="list-group list-group-flush mb-3">
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Key insights about core concepts - part 2
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Practical skills and knowledge gained
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Areas for continued development
+                                                </li>
+                                                
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-tasks me-2"></i>Daily Activities</h6>
+                                            <div class="list-group mb-3">
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Watch
+                                                            </h6>
+                                                            <p class="mb-1">Watch the video content carefully</p>
+                                                        </div>
+                                                        <small class="text-muted">30-45 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Analysis
+                                                            </h6>
+                                                            <p class="mb-1">Analyze the core concepts - part 2 presented</p>
+                                                        </div>
+                                                        <small class="text-muted">30 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Practice
+                                                            </h6>
+                                                            <p class="mb-1">Practice key concepts</p>
+                                                        </div>
+                                                        <small class="text-muted">45 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                            </div>
+
+                                            
+                                            <h6><i class="fas fa-home me-2"></i>Homework</h6>
+                                            <div class="alert alert-info">
+                                                Practice the concepts learned about core concepts - part 2
+                                            </div>
+                                            
+                                        </div>
+                                    </div>
+                                    
+                                    
+                                    <div class="mt-3">
+                                        <h6><i class="fas fa-file-alt me-2"></i>Content Summary</h6>
+                                        <p class="text-muted">Focus on core concepts - part 2 related to the video content</p>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading4">
+                                <button class="accordion-button collapsed" 
+                                        type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapse4" 
+                                        aria-expanded="false" 
+                                        aria-controls="collapse4">
+                                    <div class="w-100 d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <i class="fas fa-calendar-day me-2"></i>
+                                            Day 4: Practical Applications
+                                        </span>
+                                        <small class="text-muted me-3">2 hours 7 minutes</small>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse4" 
+                                 class="accordion-collapse collapse " 
+                                 aria-labelledby="heading4" 
+                                 data-bs-parent="#courseAccordion">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-bullseye me-2"></i>Learning Objectives</h6>
+                                            <ul class="list-group list-group-flush mb-3">
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Understand practical applications from the video content
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Apply concepts practically
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Develop hands-on skills
+                                                </li>
+                                                
+                                            </ul>
+
+                                            <h6><i class="fas fa-lightbulb me-2"></i>Key Takeaways</h6>
+                                            <ul class="list-group list-group-flush mb-3">
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Key insights about practical applications
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Practical skills and knowledge gained
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Areas for continued development
+                                                </li>
+                                                
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-tasks me-2"></i>Daily Activities</h6>
+                                            <div class="list-group mb-3">
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Watch
+                                                            </h6>
+                                                            <p class="mb-1">Watch the video content carefully</p>
+                                                        </div>
+                                                        <small class="text-muted">30-45 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Application
+                                                            </h6>
+                                                            <p class="mb-1">Apply concepts to real scenarios</p>
+                                                        </div>
+                                                        <small class="text-muted">60 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Experimentation
+                                                            </h6>
+                                                            <p class="mb-1">Experiment with variations</p>
+                                                        </div>
+                                                        <small class="text-muted">30 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                            </div>
+
+                                            
+                                            <h6><i class="fas fa-home me-2"></i>Homework</h6>
+                                            <div class="alert alert-info">
+                                                Apply practical applications to a personal project or interest
+                                            </div>
+                                            
+                                        </div>
+                                    </div>
+                                    
+                                    
+                                    <div class="mt-3">
+                                        <h6><i class="fas fa-file-alt me-2"></i>Content Summary</h6>
+                                        <p class="text-muted">Focus on practical applications related to the video content</p>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading5">
+                                <button class="accordion-button collapsed" 
+                                        type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapse5" 
+                                        aria-expanded="false" 
+                                        aria-controls="collapse5">
+                                    <div class="w-100 d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <i class="fas fa-calendar-day me-2"></i>
+                                            Day 5: Advanced Topics
+                                        </span>
+                                        <small class="text-muted me-3">2 hours 7 minutes</small>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse5" 
+                                 class="accordion-collapse collapse " 
+                                 aria-labelledby="heading5" 
+                                 data-bs-parent="#courseAccordion">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-bullseye me-2"></i>Learning Objectives</h6>
+                                            <ul class="list-group list-group-flush mb-3">
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Understand advanced topics from the video content
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Explore complex topics
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Push beyond basics
+                                                </li>
+                                                
+                                            </ul>
+
+                                            <h6><i class="fas fa-lightbulb me-2"></i>Key Takeaways</h6>
+                                            <ul class="list-group list-group-flush mb-3">
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Key insights about advanced topics
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Practical skills and knowledge gained
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Areas for continued development
+                                                </li>
+                                                
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-tasks me-2"></i>Daily Activities</h6>
+                                            <div class="list-group mb-3">
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Watch
+                                                            </h6>
+                                                            <p class="mb-1">Watch the video content carefully</p>
+                                                        </div>
+                                                        <small class="text-muted">30-45 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Application
+                                                            </h6>
+                                                            <p class="mb-1">Apply concepts to real scenarios</p>
+                                                        </div>
+                                                        <small class="text-muted">60 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Experimentation
+                                                            </h6>
+                                                            <p class="mb-1">Experiment with variations</p>
+                                                        </div>
+                                                        <small class="text-muted">30 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                            </div>
+
+                                            
+                                            <h6><i class="fas fa-home me-2"></i>Homework</h6>
+                                            <div class="alert alert-info">
+                                                Apply advanced topics to a personal project or interest
+                                            </div>
+                                            
+                                        </div>
+                                    </div>
+                                    
+                                    
+                                    <div class="mt-3">
+                                        <h6><i class="fas fa-file-alt me-2"></i>Content Summary</h6>
+                                        <p class="text-muted">Focus on advanced topics related to the video content</p>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading6">
+                                <button class="accordion-button collapsed" 
+                                        type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapse6" 
+                                        aria-expanded="false" 
+                                        aria-controls="collapse6">
+                                    <div class="w-100 d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <i class="fas fa-calendar-day me-2"></i>
+                                            Day 6: Integration and Practice
+                                        </span>
+                                        <small class="text-muted me-3">2 hours 52 minutes</small>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse6" 
+                                 class="accordion-collapse collapse " 
+                                 aria-labelledby="heading6" 
+                                 data-bs-parent="#courseAccordion">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-bullseye me-2"></i>Learning Objectives</h6>
+                                            <ul class="list-group list-group-flush mb-3">
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Understand integration and practice from the video content
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Apply concepts practically
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Develop hands-on skills
+                                                </li>
+                                                
+                                            </ul>
+
+                                            <h6><i class="fas fa-lightbulb me-2"></i>Key Takeaways</h6>
+                                            <ul class="list-group list-group-flush mb-3">
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Key insights about integration and practice
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Practical skills and knowledge gained
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Areas for continued development
+                                                </li>
+                                                
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-tasks me-2"></i>Daily Activities</h6>
+                                            <div class="list-group mb-3">
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Watch
+                                                            </h6>
+                                                            <p class="mb-1">Watch the video content carefully</p>
+                                                        </div>
+                                                        <small class="text-muted">30-45 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Synthesis
+                                                            </h6>
+                                                            <p class="mb-1">Synthesize all learned concepts</p>
+                                                        </div>
+                                                        <small class="text-muted">45 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Project
+                                                            </h6>
+                                                            <p class="mb-1">Work on final project</p>
+                                                        </div>
+                                                        <small class="text-muted">90 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                            </div>
+
+                                            
+                                            <h6><i class="fas fa-home me-2"></i>Homework</h6>
+                                            <div class="alert alert-info">
+                                                Work on your final project and prepare for completion
+                                            </div>
+                                            
+                                        </div>
+                                    </div>
+                                    
+                                    
+                                    <div class="mt-3">
+                                        <h6><i class="fas fa-file-alt me-2"></i>Content Summary</h6>
+                                        <p class="text-muted">Focus on integration and practice related to the video content</p>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading7">
+                                <button class="accordion-button collapsed" 
+                                        type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapse7" 
+                                        aria-expanded="false" 
+                                        aria-controls="collapse7">
+                                    <div class="w-100 d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <i class="fas fa-calendar-day me-2"></i>
+                                            Day 7: Mastery and Review
+                                        </span>
+                                        <small class="text-muted me-3">2 hours 52 minutes</small>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse7" 
+                                 class="accordion-collapse collapse " 
+                                 aria-labelledby="heading7" 
+                                 data-bs-parent="#courseAccordion">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-bullseye me-2"></i>Learning Objectives</h6>
+                                            <ul class="list-group list-group-flush mb-3">
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Understand mastery and review from the video content
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Synthesize all learning
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-check text-success me-2"></i>Demonstrate mastery
+                                                </li>
+                                                
+                                            </ul>
+
+                                            <h6><i class="fas fa-lightbulb me-2"></i>Key Takeaways</h6>
+                                            <ul class="list-group list-group-flush mb-3">
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Key insights about mastery and review
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Practical skills and knowledge gained
+                                                </li>
+                                                
+                                                <li class="list-group-item bg-transparent border-0 px-0">
+                                                    <i class="fas fa-star text-warning me-2"></i>Areas for continued development
+                                                </li>
+                                                
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-tasks me-2"></i>Daily Activities</h6>
+                                            <div class="list-group mb-3">
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Watch
+                                                            </h6>
+                                                            <p class="mb-1">Watch the video content carefully</p>
+                                                        </div>
+                                                        <small class="text-muted">30-45 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Synthesis
+                                                            </h6>
+                                                            <p class="mb-1">Synthesize all learned concepts</p>
+                                                        </div>
+                                                        <small class="text-muted">45 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="list-group-item bg-dark">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-play text-primary me-2"></i>
+                                                                Project
+                                                            </h6>
+                                                            <p class="mb-1">Work on final project</p>
+                                                        </div>
+                                                        <small class="text-muted">90 minutes</small>
+                                                    </div>
+                                                </div>
+                                                
+                                            </div>
+
+                                            
+                                            <h6><i class="fas fa-home me-2"></i>Homework</h6>
+                                            <div class="alert alert-info">
+                                                Work on your final project and prepare for completion
+                                            </div>
+                                            
+                                        </div>
+                                    </div>
+                                    
+                                    
+                                    <div class="mt-3">
+                                        <h6><i class="fas fa-file-alt me-2"></i>Content Summary</h6>
+                                        <p class="text-muted">Focus on mastery and review related to the video content</p>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+
+            <!-- Final Project and Resources -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-project-diagram me-2"></i>
+                                Final Project
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p>Create a presentation summarizing key concepts from &#34;YouTube Video Course&#34;</p>
+                            
+                            <h6>Assessment Criteria:</h6>
+                            <p class="text-muted">Complete daily activities and final project</p>
+                            
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-external-link-alt me-2"></i>
+                                Additional Resources
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled">
+                                
+                                <li class="mb-2">
+                                    <i class="fas fa-link text-primary me-2"></i>Original video: https://youtube.com/shorts/RZW4ESKFb98?si=BIgoP4m4_ZSTSeDq
+                                </li>
+                                
+                                <li class="mb-2">
+                                    <i class="fas fa-link text-primary me-2"></i>Online forums and communities for discussion
+                                </li>
+                                
+                                <li class="mb-2">
+                                    <i class="fas fa-link text-primary me-2"></i>Additional videos on similar topics
+                                </li>
+                                
+                                <li class="mb-2">
+                                    <i class="fas fa-link text-primary me-2"></i>Practice exercises and projects
+                                </li>
+                                
+                                <li class="mb-2">
+                                    <i class="fas fa-link text-primary me-2"></i>Recommended reading materials
+                                </li>
+                                
+                                <li class="mb-2">
+                                    <i class="fas fa-link text-primary me-2"></i>Online tools and resources
+                                </li>
+                                
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Processing Details -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card border-secondary">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                Processing Details & Reliability Metrics
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <h6>Metadata Extraction</h6>
+                                    <div class="metric-details">
+                                        <div class="metric-row">
+                                            <span>YouTube API:</span>
+                                            <span class="text-danger">
+                                                ✗
+                                            </span>
+                                        </div>
+                                        <div class="metric-row">
+                                            <span>Backup API:</span>
+                                            <span class="text-danger">
+                                                ✗
+                                            </span>
+                                        </div>
+                                        <div class="metric-row">
+                                            <span>Web Scraper:</span>
+                                            <span class="text-danger">
+                                                ✗
+                                            </span>
+                                        </div>
+                                        <div class="metric-row fw-bold">
+                                            <span>Success Rate:</span>
+                                            <span>0.0%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6>Transcript Extraction</h6>
+                                    <div class="metric-details">
+                                        <div class="metric-row">
+                                            <span>Apify:</span>
+                                            <span class="text-danger">
+                                                ✗
+                                            </span>
+                                        </div>
+                                        <div class="metric-row">
+                                            <span>YouTube Transcript:</span>
+                                            <span class="text-danger">
+                                                ✗
+                                            </span>
+                                        </div>
+                                        <div class="metric-row">
+                                            <span>Backup Service:</span>
+                                            <span class="text-danger">
+                                                ✗
+                                            </span>
+                                        </div>
+                                        <div class="metric-row fw-bold">
+                                            <span>Success Rate:</span>
+                                            <span>0.0%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6>AI Generation</h6>
+                                    <div class="metric-details">
+                                        <div class="metric-row">
+                                            <span>OpenRouter GPT-4:</span>
+                                            <span class="text-danger">
+                                                ✗
+                                            </span>
+                                        </div>
+                                        <div class="metric-row">
+                                            <span>Claude 3.5:</span>
+                                            <span class="text-danger">
+                                                ✗
+                                            </span>
+                                        </div>
+                                        <div class="metric-row">
+                                            <span>Fallback Generator:</span>
+                                            <span class="text-danger">
+                                                ✗
+                                            </span>
+                                        </div>
+                                        <div class="metric-row fw-bold">
+                                            <span>Success Rate:</span>
+                                            <span>0.0%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Options -->
+            <div class="row mt-4">
+                <div class="col-12 text-center">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary" onclick="downloadJSON()">
+                            <i class="fas fa-download me-2"></i>
+                            Download JSON
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="printCourse()">
+                            <i class="fas fa-print me-2"></i>
+                            Print Course
+                        </button>
+                        <button type="button" class="btn btn-outline-info" onclick="shareCourse()">
+                            <i class="fas fa-share me-2"></i>
+                            Share Course
+                        </button>
+                        <button type="button" class="btn btn-outline-warning" onclick="showEmbedCode()">
+                            <i class="fas fa-code me-2"></i>
+                            Embed Course
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Embed Code Modal -->
+        <div class="modal fade" id="embedModal" tabindex="-1" aria-labelledby="embedModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="embedModalLabel">
+                            <i class="fas fa-code me-2"></i>
+                            Embed Course Code
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted">Copy and paste this iframe code to embed the course on your website:</p>
+                        <div class="mb-3">
+                            <label for="embedCode" class="form-label">Iframe Embed Code</label>
+                            <textarea class="form-control" id="embedCode" rows="4" readonly></textarea>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-primary" onclick="copyEmbedCode()">
+                                <i class="fas fa-copy me-2"></i>Copy to Clipboard
+                            </button>
+                            <small class="text-muted align-self-center">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Responsive and mobile-friendly
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center py-4 mt-5 border-top">
+            <p class="text-muted mb-0">
+                <i class="fas fa-shield-alt me-1"></i>
+                Generated with enterprise-grade reliability
+            </p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Course data for JavaScript functions
+        const courseData = {"assessment_criteria": "Complete daily activities and final project", "course_description": "A structured 7-day course based on the YouTube video \u0027YouTube Video Course\u0027 by Unknown Creator. Learn from this video content", "course_title": "7-Day Learning Course: YouTube Video Course", "days": [{"activities": [{"description": "Watch the video content carefully", "time_estimate": "30-45 minutes", "type": "watch"}, {"description": "Take notes on main topics and themes", "time_estimate": "20 minutes", "type": "note-taking"}, {"description": "Reflect on your learning goals", "time_estimate": "15 minutes", "type": "reflection"}], "content_summary": "Focus on introduction and overview related to the video content", "day": 1, "estimated_time": "1 hour 12 minutes", "homework": "Review your notes and identify questions for deeper exploration", "key_takeaways": ["Key insights about introduction and overview", "Practical skills and knowledge gained", "Areas for continued development"], "objectives": ["Understand introduction and overview from the video content", "Identify main themes and concepts", "Set personal learning goals"], "title": "Day 1: Introduction and Overview"}, {"activities": [{"description": "Watch the video content carefully", "time_estimate": "30-45 minutes", "type": "watch"}, {"description": "Analyze the core concepts - part 1 presented", "time_estimate": "30 minutes", "type": "analysis"}, {"description": "Practice key concepts", "time_estimate": "45 minutes", "type": "practice"}], "content_summary": "Focus on core concepts - part 1 related to the video content", "day": 2, "estimated_time": "1 hour 52 minutes", "homework": "Practice the concepts learned about core concepts - part 1", "key_takeaways": ["Key insights about core concepts - part 1", "Practical skills and knowledge gained", "Areas for continued development"], "objectives": ["Understand core concepts - part 1 from the video content", "Master key principles", "Build foundational understanding"], "title": "Day 2: Core Concepts - Part 1"}, {"activities": [{"description": "Watch the video content carefully", "time_estimate": "30-45 minutes", "type": "watch"}, {"description": "Analyze the core concepts - part 2 presented", "time_estimate": "30 minutes", "type": "analysis"}, {"description": "Practice key concepts", "time_estimate": "45 minutes", "type": "practice"}], "content_summary": "Focus on core concepts - part 2 related to the video content", "day": 3, "estimated_time": "1 hour 52 minutes", "homework": "Practice the concepts learned about core concepts - part 2", "key_takeaways": ["Key insights about core concepts - part 2", "Practical skills and knowledge gained", "Areas for continued development"], "objectives": ["Understand core concepts - part 2 from the video content", "Master key principles", "Build foundational understanding"], "title": "Day 3: Core Concepts - Part 2"}, {"activities": [{"description": "Watch the video content carefully", "time_estimate": "30-45 minutes", "type": "watch"}, {"description": "Apply concepts to real scenarios", "time_estimate": "60 minutes", "type": "application"}, {"description": "Experiment with variations", "time_estimate": "30 minutes", "type": "experimentation"}], "content_summary": "Focus on practical applications related to the video content", "day": 4, "estimated_time": "2 hours 7 minutes", "homework": "Apply practical applications to a personal project or interest", "key_takeaways": ["Key insights about practical applications", "Practical skills and knowledge gained", "Areas for continued development"], "objectives": ["Understand practical applications from the video content", "Apply concepts practically", "Develop hands-on skills"], "title": "Day 4: Practical Applications"}, {"activities": [{"description": "Watch the video content carefully", "time_estimate": "30-45 minutes", "type": "watch"}, {"description": "Apply concepts to real scenarios", "time_estimate": "60 minutes", "type": "application"}, {"description": "Experiment with variations", "time_estimate": "30 minutes", "type": "experimentation"}], "content_summary": "Focus on advanced topics related to the video content", "day": 5, "estimated_time": "2 hours 7 minutes", "homework": "Apply advanced topics to a personal project or interest", "key_takeaways": ["Key insights about advanced topics", "Practical skills and knowledge gained", "Areas for continued development"], "objectives": ["Understand advanced topics from the video content", "Explore complex topics", "Push beyond basics"], "title": "Day 5: Advanced Topics"}, {"activities": [{"description": "Watch the video content carefully", "time_estimate": "30-45 minutes", "type": "watch"}, {"description": "Synthesize all learned concepts", "time_estimate": "45 minutes", "type": "synthesis"}, {"description": "Work on final project", "time_estimate": "90 minutes", "type": "project"}], "content_summary": "Focus on integration and practice related to the video content", "day": 6, "estimated_time": "2 hours 52 minutes", "homework": "Work on your final project and prepare for completion", "key_takeaways": ["Key insights about integration and practice", "Practical skills and knowledge gained", "Areas for continued development"], "objectives": ["Understand integration and practice from the video content", "Apply concepts practically", "Develop hands-on skills"], "title": "Day 6: Integration and Practice"}, {"activities": [{"description": "Watch the video content carefully", "time_estimate": "30-45 minutes", "type": "watch"}, {"description": "Synthesize all learned concepts", "time_estimate": "45 minutes", "type": "synthesis"}, {"description": "Work on final project", "time_estimate": "90 minutes", "type": "project"}], "content_summary": "Focus on mastery and review related to the video content", "day": 7, "estimated_time": "2 hours 52 minutes", "homework": "Work on your final project and prepare for completion", "key_takeaways": ["Key insights about mastery and review", "Practical skills and knowledge gained", "Areas for continued development"], "objectives": ["Understand mastery and review from the video content", "Synthesize all learning", "Demonstrate mastery"], "title": "Day 7: Mastery and Review"}], "difficulty_level": "Beginner to Intermediate", "estimated_total_time": "8-12 hours", "fallback_info": {"data_available": {"transcript": false, "video_info": false}, "generated_by": "fallback_generator", "reason": "metadata_extraction_failed", "timestamp": "2025-07-18T03:31:27.526868"}, "final_project": "Create a presentation summarizing key concepts from \"YouTube Video Course\"", "resources": ["Original video: https://youtube.com/shorts/RZW4ESKFb98?si=BIgoP4m4_ZSTSeDq", "Online forums and communities for discussion", "Additional videos on similar topics", "Practice exercises and projects", "Recommended reading materials", "Online tools and resources"], "target_audience": "Students and lifelong learners"};
+        const metricsData = {"ai_success": {"ai_success_rate": 0.0, "claude": false, "fallback_generator": false, "openrouter": false}, "api_success": {"backup_api": false, "metadata_success_rate": 0.0, "scraper": false, "youtube_api": false}, "cost_category": "Low", "overall_success_rate": 0.0, "processing_time": 0.0, "quality_metrics": {"errors": [], "errors_count": 0, "retries": 0, "warnings": [], "warnings_count": 0}, "reliability_grade": "D", "speed_category": "Fast", "timestamp": "2025-07-18T03:31:27.526905", "total_cost": 0.0, "transcript_success": {"apify": false, "backup_transcript": false, "transcript_success_rate": 0.0, "youtube_transcript": false}};
+        
+        // Debug: Log course data to console for troubleshooting
+        console.log('Course Data:', courseData);
+        console.log('MP4 Video URL:', courseData?.mp4_video_url);
+        console.log('MP4 Download Status:', courseData?.mp4_download_status);
+        
+        // Video debugging - check video loading when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.querySelector('video');
+            if (video) {
+                console.log('Video element found:', video.src);
+                
+                video.addEventListener('loadstart', function() {
+                    console.log('Video loading started');
+                });
+                
+                video.addEventListener('loadeddata', function() {
+                    console.log('Video data loaded successfully');
+                });
+                
+                video.addEventListener('error', function(e) {
+                    console.error('Video loading error:', e);
+                    console.error('Video error details:', this.error);
+                    
+                    // Show user-friendly error message
+                    const videoContainer = this.parentElement;
+                    videoContainer.innerHTML = `
+                        <div class="alert alert-warning h-100 d-flex align-items-center justify-content-center">
+                            <div class="text-center">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Video Playback Error</strong>
+                                <p class="mb-2 mt-2">The video file cannot be played in the browser.</p>
+                                <a href="${this.src}" target="_blank" class="btn btn-outline-warning btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Try Direct Link
+                                </a>
+                                <a href="${this.src}" download class="btn btn-outline-primary btn-sm ms-2">
+                                    <i class="fas fa-download me-1"></i>Download File
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                video.addEventListener('canplay', function() {
+                    console.log('Video is ready to play');
+                });
+            } else {
+                console.log('No video element found on page');
+            }
+            
+            // Debug: Check for navigation issues
+            const navigationLinks = document.querySelectorAll('a[href]');
+            navigationLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    console.log('Navigation clicked:', this.href);
+                    
+                    // Check for problematic redirects
+                    if (this.href.includes('login') || this.href.includes('signin')) {
+                        console.warn('Detected potential redirect to login page:', this.href);
+                        e.preventDefault();
+                        alert('Navigation issue detected. This link appears to redirect to a login page.');
+                        return false;
+                    }
+                });
+            });
+        });
+
+        function downloadJSON() {
+            const data = {
+                course: courseData,
+                metrics: metricsData,
+                generated_at: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `youtube-course-${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function printCourse() {
+            window.print();
+        }
+
+        function shareCourse() {
+            if (navigator.share) {
+                navigator.share({
+                    title: courseData.course_title,
+                    text: courseData.course_description,
+                    url: window.location.href
+                });
+            } else {
+                // Fallback for browsers that don't support Web Share API
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    alert('Course URL copied to clipboard!');
+                });
+            }
+        }
+
+        function showEmbedCode() {
+            const courseId = window.location.pathname.split('/').pop();
+            const baseUrl = window.location.origin;
+            const embedUrl = `${baseUrl}/courses/${courseId}?embed=true`;
+            
+            const embedCode = `<iframe 
+    src="${embedUrl}" 
+    width="100%" 
+    height="800" 
+    frameborder="0" 
+    style="border: 1px solid #ddd; border-radius: 8px;"
+    title="YouTube Course: ${courseData.course_title || 'Course'}"
+    allowfullscreen>
+</iframe>`;
+
+            document.getElementById('embedCode').value = embedCode;
+            const modal = new bootstrap.Modal(document.getElementById('embedModal'));
+            modal.show();
+        }
+
+        function copyEmbedCode() {
+            const embedCode = document.getElementById('embedCode');
+            embedCode.select();
+            embedCode.setSelectionRange(0, 99999); // For mobile devices
+            
+            navigator.clipboard.writeText(embedCode.value).then(() => {
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check me-2"></i>Copied!';
+                button.classList.remove('btn-primary');
+                button.classList.add('btn-success');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('btn-success');
+                    button.classList.add('btn-primary');
+                }, 2000);
+            }).catch(err => {
+                alert('Failed to copy to clipboard. Please select and copy manually.');
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,2039 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Test Management Dashboard</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --danger-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+        }
+
+        .dashboard-header {
+            background: var(--primary-gradient);
+            padding: 2rem 0;
+            border-radius: 0 0 20px 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .test-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .test-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-running {
+            background: #ffc107;
+            box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+        }
+
+        .status-passed {
+            background: #28a745;
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+        }
+
+        .status-failed {
+            background: #dc3545;
+            box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+        }
+
+        .status-idle {
+            background: #6c757d;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .endpoint-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .endpoint-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .endpoint-card:hover {
+            transform: translateY(-1px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .method-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+
+        .method-get { background: var(--bs-primary); }
+        .method-post { background: var(--bs-success); }
+        .method-put { background: var(--bs-warning); }
+        .method-delete { background: var(--bs-danger); }
+
+        .test-output-container {
+            background: #0d1117;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .test-output-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .test-output-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        .test-output-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        .btn-gradient {
+            background: var(--primary-gradient);
+            border: none;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            color: white;
+        }
+
+        .progress-ring {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto;
+        }
+
+        .progress-ring-circle {
+            fill: none;
+            stroke: var(--bs-border-color);
+            stroke-width: 4;
+        }
+
+        .progress-ring-progress {
+            fill: none;
+            stroke: #28a745;
+            stroke-width: 4;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dasharray 0.3s ease;
+        }
+
+        .self-healing-panel {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(32, 201, 151, 0.1));
+            border: 1px solid rgba(40, 167, 69, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .ai-status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            gap: 0.5rem;
+        }
+
+        .ai-active {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+        }
+
+        .ai-idle {
+            background: rgba(108, 117, 125, 0.2);
+            color: #6c757d;
+        }
+
+        .test-category-tabs {
+            border-bottom: 2px solid var(--card-border);
+            margin-bottom: 2rem;
+        }
+
+        .test-category-tab {
+            background: none;
+            border: none;
+            color: #6c757d;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .test-category-tab.active {
+            color: white;
+            border-bottom-color: var(--bs-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .test-category-tab:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .floating-action-menu {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+
+        .floating-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            border: none;
+            color: white;
+            font-size: 1.25rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .floating-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .test-file-item {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+        }
+
+        .test-file-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .test-file-item.selected {
+            border-color: var(--bs-primary) !important;
+            box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+        }
+
+        /* Authentic n8n-Style Workflow Viewer */
+        .workflow-viewer-panel {
+            background: #2a2a30;
+            border: 1px solid #3a3a40;
+            border-radius: 8px;
+            padding: 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .workflow-header {
+            background: #36363d;
+            border-bottom: 1px solid #3a3a40;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .workflow-header h5 {
+            color: #f0f0f0;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .workflow-content {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            min-height: 400px;
+        }
+
+        .mermaid-container {
+            background: #2a2a30;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .mermaid-diagram {
+            width: 100%;
+            height: 100%;
+            min-height: 250px;
+        }
+
+        .live-logs-container {
+            background: #1e1e24;
+            border-left: 1px solid #3a3a40;
+        }
+
+        .live-logs-header {
+            background: #252529;
+            border-bottom: 1px solid #3a3a40;
+            padding: 0.75rem 1rem;
+        }
+
+        .live-logs-header h6 {
+            color: #b0b0b0;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .live-logs-content {
+            padding: 1rem;
+            max-height: 320px;
+            overflow-y: auto;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            font-size: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-timestamp {
+            color: #6c757d;
+            font-size: 0.75rem;
+            min-width: 80px;
+            flex-shrink: 0;
+        }
+
+        .log-message {
+            color: #e9ecef;
+            flex: 1;
+        }
+
+        .log-entry.success .log-message {
+            color: #28a745;
+        }
+
+        .log-entry.error .log-message {
+            color: #dc3545;
+        }
+
+        .log-entry.warning .log-message {
+            color: #ffc107;
+        }
+
+        .log-entry.system .log-message {
+            color: #17a2b8;
+        }
+
+        .workflow-controls .btn {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border: 1px solid #4a4a50;
+            background: #36363d;
+            color: #e0e0e0;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .workflow-controls .btn:hover {
+            background: #404048;
+            border-color: #5a5a60;
+            color: #f0f0f0;
+        }
+
+        .workflow-controls .btn-outline-warning {
+            border-color: #f39c12;
+            color: #f39c12;
+        }
+
+        .workflow-controls .btn-outline-warning:hover {
+            background: #f39c12;
+            color: #000;
+        }
+
+        .workflow-controls .btn-outline-info {
+            border-color: #3498db;
+            color: #3498db;
+        }
+
+        .workflow-controls .btn-outline-info:hover {
+            background: #3498db;
+            color: #fff;
+        }
+
+        .workflow-controls .btn-outline-secondary {
+            border-color: #95a5a6;
+            color: #95a5a6;
+        }
+
+        .workflow-controls .btn-outline-secondary:hover {
+            background: #95a5a6;
+            color: #fff;
+        }
+
+        /* Mermaid Theme Overrides */
+        .mermaid .node rect,
+        .mermaid .node circle,
+        .mermaid .node ellipse,
+        .mermaid .node polygon {
+            fill: rgba(255, 255, 255, 0.1) !important;
+            stroke: rgba(255, 255, 255, 0.3) !important;
+            stroke-width: 2px !important;
+        }
+
+        .mermaid .success rect,
+        .mermaid .success circle,
+        .mermaid .success ellipse,
+        .mermaid .success polygon {
+            fill: rgba(40, 167, 69, 0.2) !important;
+            stroke: #28a745 !important;
+            animation: pulse-success 2s infinite;
+        }
+
+        .mermaid .error rect,
+        .mermaid .error circle,
+        .mermaid .error ellipse,
+        .mermaid .error polygon {
+            fill: rgba(220, 53, 69, 0.2) !important;
+            stroke: #dc3545 !important;
+            animation: pulse-error 2s infinite;
+        }
+
+        .mermaid .progress rect,
+        .mermaid .progress circle,
+        .mermaid .progress ellipse,
+        .mermaid .progress polygon {
+            fill: rgba(255, 193, 7, 0.2) !important;
+            stroke: #ffc107 !important;
+            animation: pulse-progress 1.5s infinite;
+        }
+
+        .mermaid .pending rect,
+        .mermaid .pending circle,
+        .mermaid .pending ellipse,
+        .mermaid .pending polygon {
+            fill: rgba(108, 117, 125, 0.2) !important;
+            stroke: #6c757d !important;
+        }
+
+        .mermaid .edgePath .path {
+            stroke: rgba(255, 255, 255, 0.4) !important;
+            stroke-width: 2px !important;
+        }
+
+        .mermaid .edgeLabel {
+            background-color: rgba(0, 0, 0, 0.7) !important;
+            color: white !important;
+        }
+
+        @keyframes pulse-success {
+            0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+        }
+
+        @keyframes pulse-error {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+
+        @keyframes pulse-progress {
+            0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+        }
+
+        /* Authentic n8n Workflow Canvas */
+        .fallback-workflow {
+            background: #2a2a30;
+            position: relative;
+            min-height: 350px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+        .workflow-canvas {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            position: relative;
+        }
+
+        .n8n-node {
+            position: relative;
+            background: #4a4a50;
+            border: 2px solid #5a5a60;
+            border-radius: 12px;
+            width: 120px;
+            height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .n8n-node:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .n8n-node.status-success {
+            border-color: #22c55e;
+            background: #4a4a50;
+        }
+
+        .n8n-node.status-error {
+            border-color: #ef4444;
+            background: #4a4a50;
+        }
+
+        .n8n-node.status-progress {
+            border-color: #f59e0b;
+            background: #4a4a50;
+            animation: n8n-pulse 2s infinite;
+        }
+
+        .n8n-node.status-pending {
+            border-color: #6b7280;
+            background: #4a4a50;
+        }
+
+        .node-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .status-success .node-icon {
+            background: #22c55e;
+            color: white;
+        }
+
+        .status-error .node-icon {
+            background: #ef4444;
+            color: white;
+        }
+
+        .status-progress .node-icon {
+            background: #f59e0b;
+            color: #000;
+        }
+
+        .status-pending .node-icon {
+            background: #6b7280;
+            color: white;
+        }
+
+        .node-title {
+            color: #e5e7eb;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-align: center;
+            line-height: 1.2;
+            max-width: 100px;
+        }
+
+        .node-subtitle {
+            color: #9ca3af;
+            font-size: 0.65rem;
+            text-align: center;
+            margin-top: 0.25rem;
+        }
+
+        .workflow-connection {
+            position: relative;
+            width: 60px;
+            height: 2px;
+            background: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .workflow-connection::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid #6b7280;
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+        }
+
+        .workflow-connection.active {
+            background: #22c55e;
+            animation: flow 2s linear infinite;
+        }
+
+        .workflow-connection.active::after {
+            border-left-color: #22c55e;
+        }
+
+        /* Connection dots like n8n */
+        .n8n-node::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background: #6b7280;
+            border-radius: 50%;
+            border: 2px solid #2a2a30;
+        }
+
+        .n8n-node::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background: #6b7280;
+            border-radius: 50%;
+            border: 2px solid #2a2a30;
+        }
+
+        .n8n-node:first-child::before {
+            display: none;
+        }
+
+        .n8n-node:last-child::after {
+            display: none;
+        }
+
+        .n8n-node.status-success::before,
+        .n8n-node.status-success::after {
+            background: #22c55e;
+        }
+
+        .n8n-node.status-progress::before,
+        .n8n-node.status-progress::after {
+            background: #f59e0b;
+        }
+
+        .n8n-node.status-error::before,
+        .n8n-node.status-error::after {
+            background: #ef4444;
+        }
+
+        @keyframes n8n-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+
+        @keyframes flow {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 0; }
+        }
+
+        /* n8n Status Indicator */
+        .workflow-status {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #36363d;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid #4a4a50;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+        }
+
+        .status-text {
+            color: #e5e7eb;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .real-time-feed {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            height: 300px;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .feed-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .feed-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .feed-timestamp {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="mb-0 text-white">
+                        <i class="fas fa-robot me-3"></i>
+                        Advanced Test Management
+                    </h1>
+                    <p class="mb-0 text-white-50 mt-2">Self-Healing AI-Powered Test Automation</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="ai-status-badge ai-idle" id="aiStatus">
+                        <i class="fas fa-brain"></i>
+                        <span>AI System Idle</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!-- n8n-Style Workflow Viewer -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="workflow-viewer-panel">
+                    <div class="workflow-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fw-semibold">
+                                <i class="fas fa-project-diagram me-2"></i>
+                                Program Flow
+                            </h5>
+                            <div class="workflow-controls">
+                                <button id="pauseFlowBtn" class="btn btn-sm btn-outline-warning me-2">
+                                    <i class="fas fa-pause"></i> Pause Live View
+                                </button>
+                                <button id="exportFlowBtn" class="btn btn-sm btn-outline-info me-2">
+                                    <i class="fas fa-download"></i> Export
+                                </button>
+                                <button id="clearFlowBtn" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-trash"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="workflow-content">
+                        <div class="mermaid-container">
+                            <div id="mermaidDiagram" class="mermaid-diagram"></div>
+                        </div>
+                        <div class="live-logs-container">
+                            <div class="live-logs-header">
+                                <h6 class="mb-0 text-muted">
+                                    <i class="fas fa-stream me-2"></i>
+                                    Live Execution Logs
+                                </h6>
+                            </div>
+                            <div id="liveLogsList" class="live-logs-content">
+                                <div class="log-entry system">
+                                    <span class="log-timestamp"></span>
+                                    <span class="log-message">Workflow visualization initialized</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Metrics Row -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" id="totalTests">0</div>
+                    <div class="text-muted">Total Tests</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value text-success" id="passedTests">0</div>
+                    <div class="text-muted">Passed</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value text-danger" id="failedTests">0</div>
+                    <div class="text-muted">Failed</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="progress-ring">
+                        <svg class="progress-ring">
+                            <circle class="progress-ring-circle" cx="30" cy="30" r="26"></circle>
+                            <circle class="progress-ring-progress" cx="30" cy="30" r="26" id="coverageRing"></circle>
+                        </svg>
+                    </div>
+                    <div class="text-muted mt-2">Coverage</div>
+                    <div class="fw-bold" id="coveragePercent">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Self-Healing AI Panel -->
+        <div class="self-healing-panel">
+            <div class="row">
+                <div class="col-md-8">
+                    <h4 class="text-success mb-3">
+                        <i class="fas fa-magic me-2"></i>
+                        Self-Healing Test Engine
+                    </h4>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="h2 text-success mb-1" id="healingCycles">0</div>
+                                <div class="small text-muted">Healing Cycles</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="h2 text-info mb-1" id="fixesApplied">0</div>
+                                <div class="small text-muted">Fixes Applied</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="h2 text-warning mb-1" id="successRate">0%</div>
+                                <div class="small text-muted">Success Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-gradient btn-lg" id="startHealing">
+                        <i class="fas fa-play me-2"></i>Start Self-Healing
+                    </button>
+                    <button class="btn btn-outline-danger mt-2" id="stopHealing" style="display: none;">
+                        <i class="fas fa-stop me-2"></i>Stop Healing
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Left Panel: Test Categories & Controls -->
+            <div class="col-md-4">
+                <div class="test-card p-4 mb-4">
+                    <h5 class="mb-3">
+                        <i class="fas fa-layer-group me-2"></i>Test Categories
+                    </h5>
+                    
+                    <div class="test-category-tabs">
+                        <button class="test-category-tab active" data-category="all">All Tests</button>
+                        <button class="test-category-tab" data-category="unit">Unit</button>
+                        <button class="test-category-tab" data-category="integration">Integration</button>
+                        <button class="test-category-tab" data-category="functional">Functional</button>
+                    </div>
+
+                    <div id="testFilesList" class="mt-3">
+                        <!-- Test files will be populated here -->
+                    </div>
+
+                    <div class="mt-4">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-gradient" id="runAllTests">
+                                <i class="fas fa-rocket me-2"></i>Run All Tests
+                            </button>
+                            <button class="btn btn-outline-primary" id="runSelected" disabled>
+                                <i class="fas fa-play me-2"></i>Run Selected
+                            </button>
+                            <button class="btn btn-outline-secondary" id="runWithCoverage">
+                                <i class="fas fa-chart-pie me-2"></i>Run with Coverage
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Activity Feed -->
+                <div class="test-card p-4">
+                    <h6 class="mb-3">
+                        <i class="fas fa-stream me-2"></i>Real-time Activity
+                    </h6>
+                    <div class="real-time-feed" id="activityFeed">
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-clock fa-2x mb-2"></i>
+                            <p>Waiting for test activity...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel: Test Output & Results -->
+            <div class="col-md-5">
+                <div class="test-card p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">
+                            <i class="fas fa-terminal me-2"></i>Test Output
+                        </h5>
+                        <div>
+                            <span class="status-indicator status-idle" id="testStatus"></span>
+                            <span id="testStatusText">Ready</span>
+                        </div>
+                    </div>
+                    
+                    <div class="test-output-container p-3" id="testOutput">
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-code fa-3x mb-3"></i>
+                            <p>Test output will appear here when tests are running</p>
+                            <small>Click "Run All Tests" to begin</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test Results Summary -->
+                <div class="test-card p-4" id="resultsPanel" style="display: none;">
+                    <h6 class="mb-3">
+                        <i class="fas fa-chart-bar me-2"></i>Test Results Summary
+                    </h6>
+                    <div id="resultsSummary">
+                        <!-- Results will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: API Endpoints Status -->
+            <div class="col-md-3">
+                <div class="test-card p-4">
+                    <h5 class="mb-3">
+                        <i class="fas fa-plug me-2"></i>API Endpoints
+                    </h5>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">Endpoint Health</small>
+                            <small id="endpointHealth" class="text-muted">Loading...</small>
+                        </div>
+                    </div>
+
+                    <div class="endpoint-grid" id="endpointsGrid">
+                        <!-- Endpoints will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Menu -->
+    <div class="floating-action-menu">
+        <button class="floating-btn" title="Emergency Stop" id="emergencyStop">
+            <i class="fas fa-exclamation-triangle"></i>
+        </button>
+        <button class="floating-btn" title="Export Report" id="exportReport">
+            <i class="fas fa-download"></i>
+        </button>
+        <button class="floating-btn" title="Refresh Data" id="refreshDashboard">
+            <i class="fas fa-sync"></i>
+        </button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        class AdvancedTestDashboard {
+            constructor() {
+                this.testResults = null;
+                this.endpointsData = null;
+                this.selectedFile = null;
+                this.isRunning = false;
+                this.pollInterval = null;
+                this.healingActive = false;
+                this.activityItems = [];
+
+                this.init();
+            }
+
+            async init() {
+                this.setupEventListeners();
+                await this.loadInitialData();
+                this.startRealTimeUpdates();
+            }
+
+            setupEventListeners() {
+                // Test category tabs
+                document.querySelectorAll('.test-category-tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        document.querySelectorAll('.test-category-tab').forEach(t => t.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.filterTestsByCategory(e.target.dataset.category);
+                    });
+                });
+
+                // Test execution buttons
+                document.getElementById('runAllTests').addEventListener('click', () => this.runTests());
+                document.getElementById('runSelected').addEventListener('click', () => this.runTests(this.selectedFile));
+                document.getElementById('runWithCoverage').addEventListener('click', () => this.runTests(null, true));
+
+                // Self-healing controls
+                document.getElementById('startHealing').addEventListener('click', () => this.startSelfHealing());
+                document.getElementById('stopHealing').addEventListener('click', () => this.stopSelfHealing());
+
+                // Floating action buttons
+                document.getElementById('emergencyStop').addEventListener('click', () => this.emergencyStop());
+                document.getElementById('exportReport').addEventListener('click', () => this.exportReport());
+                document.getElementById('refreshDashboard').addEventListener('click', () => this.refreshAll());
+            }
+
+            async loadInitialData() {
+                await Promise.all([
+                    this.loadTestFiles(),
+                    this.loadEndpoints(),
+                    this.loadHealingStatus()
+                ]);
+            }
+
+            async loadTestFiles() {
+                try {
+                    const response = await fetch('/api/tests/files/detailed');
+                    const data = await response.json();
+                    
+                    if (data.success && data.test_files) {
+                        this.testFilesData = data;
+                        this.displayTestFiles(data.test_files);
+                        this.updateCategorySummary(data.summary);
+                    }
+                } catch (error) {
+                    this.addActivity('error', 'Failed to load test files');
+                }
+            }
+
+            displayTestFiles(testFiles) {
+                const container = document.getElementById('testFilesList');
+                const currentCategory = document.querySelector('.test-category-tab.active').dataset.category;
+                
+                let filteredFiles = testFiles;
+                if (currentCategory !== 'all') {
+                    filteredFiles = testFiles.filter(file => file.category === currentCategory);
+                }
+
+                let html = '';
+                filteredFiles.forEach(file => {
+                    const displayName = file.display_name || file.name;
+                    const statusIcon = this.getTestFileStatus(file.test_name);
+                    const categoryColor = this.getCategoryColor(file.category);
+                    const dependencyBadges = file.dependencies?.map(dep => 
+                        `<span class="badge bg-secondary me-1" style="font-size: 0.6rem;">${dep}</span>`
+                    ).join('') || '';
+                    
+                    html += `
+                        <div class="test-file-item p-3 rounded mb-3 cursor-pointer border" 
+                             data-file="${file.path}" 
+                             data-category="${file.category}"
+                             onclick="dashboard.selectTestFile('${file.path}', ${JSON.stringify(file).replace(/"/g, '&quot;')})"
+                             style="border-left: 4px solid ${categoryColor} !important;">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="badge bg-${categoryColor === '#198754' ? 'success' : categoryColor === '#fd7e14' ? 'warning' : categoryColor === '#6f42c1' ? 'primary' : 'secondary'} me-2" style="font-size: 0.65rem;">
+                                            ${file.category.toUpperCase()}
+                                        </span>
+                                        <small class="text-muted">~${file.estimated_duration}s</small>
+                                    </div>
+                                    <div class="fw-medium mb-1">${displayName}</div>
+                                    <div class="small text-muted mb-2">${file.description}</div>
+                                    ${dependencyBadges ? `<div class="mb-1">${dependencyBadges}</div>` : ''}
+                                </div>
+                                <div class="text-end">
+                                    <div>${statusIcon}</div>
+                                    <small class="text-muted d-block mt-1">
+                                        ${file.last_run?.timestamp ? new Date(file.last_run.timestamp).toLocaleTimeString() : 'Never run'}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                if (html === '') {
+                    html = `
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-search fa-2x mb-2"></i>
+                            <p>No ${currentCategory} tests found</p>
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = html;
+            }
+
+            getCategoryColor(category) {
+                const colors = {
+                    'unit': '#198754',
+                    'integration': '#fd7e14', 
+                    'functional': '#6f42c1',
+                    'legacy': '#6c757d'
+                };
+                return colors[category] || '#6c757d';
+            }
+
+            updateCategorySummary(summary) {
+                // Update category tab badges with counts
+                document.querySelectorAll('.test-category-tab').forEach(tab => {
+                    const category = tab.dataset.category;
+                    const count = category === 'all' ? summary.total_files : summary.by_category[category] || 0;
+                    
+                    if (!tab.querySelector('.badge')) {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge bg-light text-dark ms-2';
+                        badge.style.fontSize = '0.7rem';
+                        tab.appendChild(badge);
+                    }
+                    
+                    tab.querySelector('.badge').textContent = count;
+                });
+            }
+
+            selectTestFile(filePath, fileData) {
+                document.querySelectorAll('.test-file-item').forEach(item => {
+                    item.classList.remove('selected');
+                    item.style.backgroundColor = '';
+                });
+                
+                const selectedElement = document.querySelector(`[data-file="${filePath}"]`);
+                if (selectedElement) {
+                    selectedElement.classList.add('selected');
+                    selectedElement.style.backgroundColor = 'rgba(13, 110, 253, 0.1)';
+                }
+                
+                this.selectedFile = filePath;
+                this.selectedFileData = fileData;
+                document.getElementById('runSelected').disabled = false;
+                
+                // Update run button text with estimated duration
+                const duration = fileData?.estimated_duration || 10;
+                document.getElementById('runSelected').innerHTML = 
+                    `<i class="fas fa-play me-2"></i>Run Selected (~${duration}s)`;
+                
+                this.addActivity('info', `Selected test: ${fileData?.display_name || filePath}`);
+            }
+
+            getTestFileStatus(testName) {
+                if (!this.testResults) return '<i class="fas fa-question-circle text-muted"></i>';
+                
+                const failed = this.testResults.failed_tests?.some(test => test.includes(testName));
+                const passed = this.testResults.passed_tests?.some(test => test.includes(testName));
+                
+                if (failed) return '<i class="fas fa-times-circle text-danger"></i>';
+                if (passed) return '<i class="fas fa-check-circle text-success"></i>';
+                return '<i class="fas fa-question-circle text-muted"></i>';
+            }
+
+            async loadEndpoints() {
+                try {
+                    const response = await fetch('/api/endpoints');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.endpointsData = data.endpoints;
+                        this.displayEndpoints();
+                    }
+                } catch (error) {
+                    this.addActivity('error', 'Failed to load API endpoints');
+                }
+            }
+
+            displayEndpoints() {
+                const container = document.getElementById('endpointsGrid');
+                let html = '';
+                
+                const categories = {};
+                this.endpointsData.forEach(endpoint => {
+                    if (!categories[endpoint.category]) {
+                        categories[endpoint.category] = [];
+                    }
+                    categories[endpoint.category].push(endpoint);
+                });
+
+                Object.keys(categories).forEach(category => {
+                    html += `<div class="mb-3">
+                        <h6 class="text-muted mb-2">${category}</h6>`;
+                    
+                    categories[category].forEach(endpoint => {
+                        const status = this.getEndpointStatus(endpoint.test_name);
+                        const methodClass = `method-${endpoint.method.toLowerCase()}`;
+                        
+                        html += `
+                            <div class="endpoint-card mb-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="method-badge ${methodClass}">${endpoint.method}</span>
+                                        <div class="small mt-1">
+                                            <code>${endpoint.path}</code>
+                                        </div>
+                                    </div>
+                                    <div>${status}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                });
+
+                container.innerHTML = html;
+                this.updateEndpointHealth();
+            }
+
+            getEndpointStatus(testName) {
+                if (!this.testResults) return '<i class="fas fa-question-circle text-muted"></i>';
+                
+                const failed = this.testResults.failed_tests?.some(test => test.includes(testName));
+                const passed = this.testResults.passed_tests?.some(test => test.includes(testName));
+                
+                if (failed) return '<i class="fas fa-times-circle text-danger"></i>';
+                if (passed) return '<i class="fas fa-check-circle text-success"></i>';
+                return '<i class="fas fa-question-circle text-muted"></i>';
+            }
+
+            updateEndpointHealth() {
+                if (!this.endpointsData || !this.testResults) {
+                    document.getElementById('endpointHealth').textContent = 'Unknown';
+                    return;
+                }
+
+                const total = this.endpointsData.length;
+                const passed = this.endpointsData.filter(ep => {
+                    return this.testResults.passed_tests?.some(test => test.includes(ep.test_name));
+                }).length;
+
+                const healthPercent = Math.round((passed / total) * 100);
+                document.getElementById('endpointHealth').textContent = `${healthPercent}% Healthy`;
+                document.getElementById('endpointHealth').className = 
+                    healthPercent >= 80 ? 'text-success' : 
+                    healthPercent >= 60 ? 'text-warning' : 'text-danger';
+            }
+
+            async runTests(testPath = null, coverage = false) {
+                if (this.isRunning) return;
+
+                this.isRunning = true;
+                this.updateTestStatus('running', 'Running tests...');
+                this.addActivity('info', `Starting tests${testPath ? ` for ${testPath}` : ''}`);
+
+                try {
+                    const response = await fetch('/api/tests/run', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            test_path: testPath ? `tests/${testPath}` : null,
+                            coverage: coverage,
+                            verbose: true
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.startPolling();
+                    } else {
+                        this.updateTestStatus('failed', result.error);
+                        this.addActivity('error', result.error);
+                        this.isRunning = false;
+                    }
+                } catch (error) {
+                    this.updateTestStatus('failed', 'Network error');
+                    this.addActivity('error', `Network error: ${error.message}`);
+                    this.isRunning = false;
+                }
+            }
+
+            startPolling() {
+                this.pollInterval = setInterval(async () => {
+                    try {
+                        const response = await fetch('/api/tests/status');
+                        const status = await response.json();
+                        
+                        if (!status.running && status.success !== undefined) {
+                            clearInterval(this.pollInterval);
+                            this.handleTestCompletion(status);
+                        }
+                    } catch (error) {
+                        console.error('Polling error:', error);
+                    }
+                }, 1000);
+            }
+
+            handleTestCompletion(results) {
+                this.isRunning = false;
+                this.testResults = results;
+                
+                const status = results.success ? 'passed' : 'failed';
+                const message = `Tests completed: ${results.passed || 0} passed, ${results.failed || 0} failed`;
+                
+                this.updateTestStatus(status, message);
+                this.updateMetrics(results);
+                this.displayTestOutput(results);
+                this.displayEndpoints(); // Refresh endpoint status
+                this.addActivity(status, message);
+
+                // Show results panel
+                document.getElementById('resultsPanel').style.display = 'block';
+                this.displayResultsSummary(results);
+
+                // Trigger self-healing if there are failures and it's enabled
+                if (!results.success && this.healingActive) {
+                    this.triggerSelfHealing(results);
+                }
+            }
+
+            updateTestStatus(status, message) {
+                const indicator = document.getElementById('testStatus');
+                const text = document.getElementById('testStatusText');
+                
+                indicator.className = `status-indicator status-${status}`;
+                text.textContent = message;
+            }
+
+            updateMetrics(results) {
+                document.getElementById('totalTests').textContent = (results.passed || 0) + (results.failed || 0);
+                document.getElementById('passedTests').textContent = results.passed || 0;
+                document.getElementById('failedTests').textContent = results.failed || 0;
+                
+                if (results.coverage) {
+                    const coverage = Math.round(results.coverage.percent || 0);
+                    document.getElementById('coveragePercent').textContent = `${coverage}%`;
+                    this.updateCoverageRing(coverage);
+                }
+            }
+
+            updateCoverageRing(percent) {
+                const circle = document.getElementById('coverageRing');
+                const radius = 26;
+                const circumference = 2 * Math.PI * radius;
+                const offset = circumference - (percent / 100) * circumference;
+                
+                circle.style.strokeDasharray = `${circumference}`;
+                circle.style.strokeDashoffset = `${offset}`;
+            }
+
+            displayTestOutput(results) {
+                const container = document.getElementById('testOutput');
+                let output = '';
+                
+                if (results.stdout) {
+                    output += `<div class="text-success">STDOUT:</div>`;
+                    output += `<pre class="mb-3">${this.escapeHtml(results.stdout)}</pre>`;
+                }
+                
+                if (results.stderr) {
+                    output += `<div class="text-danger">STDERR:</div>`;
+                    output += `<pre class="mb-3">${this.escapeHtml(results.stderr)}</pre>`;
+                }
+                
+                if (!output) {
+                    output = '<div class="text-muted">No output available</div>';
+                }
+                
+                container.innerHTML = output;
+                container.scrollTop = container.scrollHeight;
+            }
+
+            displayResultsSummary(results) {
+                const container = document.getElementById('resultsSummary');
+                let html = '';
+                
+                if (results.failed_tests && results.failed_tests.length > 0) {
+                    html += `<div class="mb-3">
+                        <h6 class="text-danger">Failed Tests (${results.failed_tests.length})</h6>`;
+                    results.failed_tests.forEach(test => {
+                        html += `<div class="small text-danger mb-1">• ${test}</div>`;
+                    });
+                    html += '</div>';
+                }
+                
+                if (results.passed_tests && results.passed_tests.length > 0) {
+                    html += `<div class="mb-3">
+                        <h6 class="text-success">Passed Tests (${results.passed_tests.length})</h6>`;
+                    results.passed_tests.slice(0, 5).forEach(test => {
+                        html += `<div class="small text-success mb-1">• ${test}</div>`;
+                    });
+                    if (results.passed_tests.length > 5) {
+                        html += `<div class="small text-muted">... and ${results.passed_tests.length - 5} more</div>`;
+                    }
+                    html += '</div>';
+                }
+                
+                container.innerHTML = html;
+            }
+
+            async loadHealingStatus() {
+                try {
+                    const response = await fetch('/api/autonomous-fixer/status');
+                    const status = await response.json();
+                    this.updateHealingMetrics(status);
+                } catch (error) {
+                    console.error('Failed to load healing status:', error);
+                }
+            }
+
+            updateHealingMetrics(status) {
+                document.getElementById('healingCycles').textContent = status.total_cycles || 0;
+                document.getElementById('fixesApplied').textContent = status.total_fixes_applied || 0;
+                document.getElementById('successRate').textContent = `${Math.round(status.success_rate || 0)}%`;
+                
+                this.healingActive = status.running || false;
+                this.updateAIStatus(this.healingActive);
+            }
+
+            updateAIStatus(active) {
+                const statusElement = document.getElementById('aiStatus');
+                if (active) {
+                    statusElement.className = 'ai-status-badge ai-active';
+                    statusElement.innerHTML = '<i class="fas fa-brain"></i><span>AI System Active</span>';
+                } else {
+                    statusElement.className = 'ai-status-badge ai-idle';
+                    statusElement.innerHTML = '<i class="fas fa-brain"></i><span>AI System Idle</span>';
+                }
+            }
+
+            async startSelfHealing() {
+                try {
+                    const response = await fetch('/api/autonomous-fixer/start', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.healingActive = true;
+                        this.updateAIStatus(true);
+                        this.addActivity('success', 'Self-healing system started');
+                        
+                        document.getElementById('startHealing').style.display = 'none';
+                        document.getElementById('stopHealing').style.display = 'block';
+                    } else {
+                        this.addActivity('error', result.error || 'Failed to start self-healing');
+                    }
+                } catch (error) {
+                    this.addActivity('error', `Failed to start self-healing: ${error.message}`);
+                }
+            }
+
+            async stopSelfHealing() {
+                try {
+                    const response = await fetch('/api/autonomous-fixer/stop', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.healingActive = false;
+                        this.updateAIStatus(false);
+                        this.addActivity('info', 'Self-healing system stopped');
+                        
+                        document.getElementById('startHealing').style.display = 'block';
+                        document.getElementById('stopHealing').style.display = 'none';
+                    }
+                } catch (error) {
+                    this.addActivity('error', `Failed to stop self-healing: ${error.message}`);
+                }
+            }
+
+            triggerSelfHealing(testResults) {
+                this.addActivity('warning', 'Test failures detected - triggering self-healing');
+                // The autonomous fixer will handle the actual healing process
+            }
+
+            filterTestsByCategory(category) {
+                if (this.testFilesData && this.testFilesData.test_files) {
+                    this.displayTestFiles(this.testFilesData.test_files);
+                }
+            }
+
+            addActivity(type, message) {
+                const timestamp = new Date().toLocaleTimeString();
+                const item = {
+                    type,
+                    message,
+                    timestamp
+                };
+                
+                this.activityItems.unshift(item);
+                if (this.activityItems.length > 50) {
+                    this.activityItems.pop();
+                }
+                
+                this.updateActivityFeed();
+            }
+
+            updateActivityFeed() {
+                const container = document.getElementById('activityFeed');
+                let html = '';
+                
+                this.activityItems.forEach(item => {
+                    const iconClass = {
+                        'success': 'fas fa-check-circle text-success',
+                        'error': 'fas fa-times-circle text-danger',
+                        'warning': 'fas fa-exclamation-triangle text-warning',
+                        'info': 'fas fa-info-circle text-info'
+                    }[item.type] || 'fas fa-circle text-muted';
+                    
+                    html += `
+                        <div class="feed-item">
+                            <i class="${iconClass} me-2"></i>
+                            <span class="flex-grow-1">${item.message}</span>
+                            <span class="feed-timestamp">${item.timestamp}</span>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+            }
+
+            startRealTimeUpdates() {
+                // Update healing status every 5 seconds
+                setInterval(() => {
+                    if (this.healingActive) {
+                        this.loadHealingStatus();
+                    }
+                }, 5000);
+            }
+
+            emergencyStop() {
+                if (this.isRunning) {
+                    this.isRunning = false;
+                    if (this.pollInterval) {
+                        clearInterval(this.pollInterval);
+                    }
+                    this.updateTestStatus('idle', 'Emergency stop activated');
+                    this.addActivity('warning', 'Emergency stop activated');
+                }
+                
+                if (this.healingActive) {
+                    this.stopSelfHealing();
+                }
+            }
+
+            async exportReport() {
+                const report = {
+                    timestamp: new Date().toISOString(),
+                    testResults: this.testResults,
+                    endpointsData: this.endpointsData,
+                    activityLog: this.activityItems.slice(0, 20)
+                };
+                
+                const blob = new Blob([JSON.stringify(report, null, 2)], {
+                    type: 'application/json'
+                });
+                
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `test-report-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                this.addActivity('info', 'Test report exported');
+            }
+
+            async refreshAll() {
+                this.addActivity('info', 'Refreshing dashboard data');
+                await this.loadInitialData();
+            }
+
+            escapeHtml(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+            // Initialize workflow visualization
+            initializeWorkflowVisualization() {
+                this.flowLogger = new FlowLogger();
+                this.workflowPaused = false;
+                
+                // Initialize Mermaid with dark theme
+                mermaid.initialize({
+                    theme: 'dark',
+                    themeVariables: {
+                        primaryColor: '#667eea',
+                        primaryTextColor: '#ffffff',
+                        primaryBorderColor: '#764ba2',
+                        lineColor: 'rgba(255, 255, 255, 0.4)',
+                        secondaryColor: 'rgba(255, 255, 255, 0.1)',
+                        tertiaryColor: 'rgba(0, 0, 0, 0.2)'
+                    },
+                    flowchart: {
+                        useMaxWidth: true,
+                        htmlLabels: true,
+                        curve: 'basis'
+                    }
+                });
+                
+                this.setupWorkflowControls();
+                this.initializeWorkflowLog();
+                this.startWorkflowDemo();
+            }
+
+            setupWorkflowControls() {
+                document.getElementById('pauseFlowBtn').addEventListener('click', () => {
+                    this.workflowPaused = !this.workflowPaused;
+                    const btn = document.getElementById('pauseFlowBtn');
+                    if (this.workflowPaused) {
+                        btn.innerHTML = '<i class="fas fa-play"></i> Resume Live View';
+                        btn.className = 'btn btn-sm btn-outline-success me-2';
+                        this.flowLogger.addLog('system', 'Workflow visualization paused');
+                    } else {
+                        btn.innerHTML = '<i class="fas fa-pause"></i> Pause Live View';
+                        btn.className = 'btn btn-sm btn-outline-warning me-2';
+                        this.flowLogger.addLog('system', 'Workflow visualization resumed');
+                    }
+                });
+
+                document.getElementById('exportFlowBtn').addEventListener('click', () => {
+                    this.exportWorkflowData();
+                });
+
+                document.getElementById('clearFlowBtn').addEventListener('click', () => {
+                    this.clearWorkflowVisualization();
+                });
+            }
+
+            initializeWorkflowLog() {
+                const timestamp = new Date().toLocaleTimeString();
+                document.querySelector('.log-timestamp').textContent = timestamp;
+                this.flowLogger.addLog('system', 'n8n-style workflow visualization initialized');
+                this.flowLogger.addLog('info', 'Mermaid.js engine loaded successfully');
+                this.flowLogger.addLog('info', 'Real-time program flow tracking active');
+            }
+
+            startWorkflowDemo() {
+                // Initialize with a basic flow
+                this.flowLogger.startFlow('dashboard_init', 'Dashboard Initialization');
+                
+                setTimeout(() => {
+                    this.flowLogger.updateNodeStatus('dashboard_init', 'progress');
+                    this.flowLogger.addStep('load_components', 'Loading Components', 'dashboard_init');
+                }, 500);
+                
+                setTimeout(() => {
+                    this.flowLogger.updateNodeStatus('load_components', 'progress');
+                    this.flowLogger.addStep('init_services', 'Initialize Services', 'load_components');
+                }, 1000);
+                
+                setTimeout(() => {
+                    this.flowLogger.updateNodeStatus('init_services', 'success');
+                    this.flowLogger.updateNodeStatus('load_components', 'success');
+                    this.flowLogger.updateNodeStatus('dashboard_init', 'success');
+                    this.flowLogger.addLog('success', 'Dashboard initialization completed successfully');
+                }, 1500);
+            }
+
+            exportWorkflowData() {
+                const workflowData = {
+                    timestamp: new Date().toISOString(),
+                    nodes: Array.from(this.flowLogger.nodes.entries()),
+                    edges: Array.from(this.flowLogger.edges.entries()),
+                    logs: this.flowLogger.logs,
+                    mermaidCode: this.flowLogger.generateMermaidCode()
+                };
+                
+                const blob = new Blob([JSON.stringify(workflowData, null, 2)], {
+                    type: 'application/json'
+                });
+                
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `workflow-export-${Date.now()}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                this.flowLogger.addLog('info', 'Workflow data exported successfully');
+            }
+
+            clearWorkflowVisualization() {
+                this.flowLogger.clearFlow();
+                document.getElementById('liveLogsList').innerHTML = `
+                    <div class="log-entry system">
+                        <span class="log-timestamp">${new Date().toLocaleTimeString()}</span>
+                        <span class="log-message">Workflow visualization cleared</span>
+                    </div>
+                `;
+                this.flowLogger.addLog('system', 'Workflow visualization reset');
+            }
+        }
+
+        // FlowLogger Class - React-like workflow visualization
+        class FlowLogger {
+            constructor() {
+                this.nodes = new Map();
+                this.edges = new Map();
+                this.logs = [];
+                this.maxLogs = 100;
+                this.updateThrottle = 300;
+                this.lastUpdate = 0;
+                this.pendingUpdate = false;
+            }
+
+            startFlow(nodeId, label) {
+                this.addNode(nodeId, label, 'start');
+                this.addLog('info', `Started: ${label}`);
+                this.scheduleUpdate();
+            }
+
+            addStep(nodeId, label, parentId = null) {
+                this.addNode(nodeId, label, 'process');
+                if (parentId) {
+                    this.addEdge(parentId, nodeId);
+                }
+                this.addLog('info', `Step: ${label}`);
+                this.scheduleUpdate();
+            }
+
+            addNode(nodeId, label, type = 'process') {
+                this.nodes.set(nodeId, {
+                    id: nodeId,
+                    label: label,
+                    type: type,
+                    status: 'pending',
+                    timestamp: Date.now()
+                });
+            }
+
+            addEdge(fromId, toId, label = '') {
+                const edgeId = `${fromId}-${toId}`;
+                this.edges.set(edgeId, {
+                    id: edgeId,
+                    from: fromId,
+                    to: toId,
+                    label: label
+                });
+            }
+
+            updateNodeStatus(nodeId, status) {
+                if (this.nodes.has(nodeId)) {
+                    const node = this.nodes.get(nodeId);
+                    node.status = status;
+                    node.lastUpdate = Date.now();
+                    this.addLog(status === 'error' ? 'error' : status === 'success' ? 'success' : 'info', 
+                               `${node.label}: ${status}`);
+                    this.scheduleUpdate();
+                }
+            }
+
+            addLog(type, message) {
+                const logEntry = {
+                    type: type,
+                    message: message,
+                    timestamp: new Date().toLocaleTimeString()
+                };
+                
+                this.logs.unshift(logEntry);
+                if (this.logs.length > this.maxLogs) {
+                    this.logs.pop();
+                }
+                
+                this.updateLogDisplay();
+            }
+
+            updateLogDisplay() {
+                const container = document.getElementById('liveLogsList');
+                if (!container) return;
+                
+                const logHtml = this.logs.map(log => `
+                    <div class="log-entry ${log.type}">
+                        <span class="log-timestamp">${log.timestamp}</span>
+                        <span class="log-message">${log.message}</span>
+                    </div>
+                `).join('');
+                
+                container.innerHTML = logHtml;
+            }
+
+            scheduleUpdate() {
+                if (this.pendingUpdate) return;
+                
+                const now = Date.now();
+                const timeSinceLastUpdate = now - this.lastUpdate;
+                
+                if (timeSinceLastUpdate >= this.updateThrottle) {
+                    this.updateDiagram();
+                } else {
+                    this.pendingUpdate = true;
+                    setTimeout(() => {
+                        this.pendingUpdate = false;
+                        this.updateDiagram();
+                    }, this.updateThrottle - timeSinceLastUpdate);
+                }
+            }
+
+            generateMermaidCode() {
+                let mermaidCode = 'flowchart TD\n';
+                
+                // Add nodes with correct syntax
+                for (const [nodeId, node] of this.nodes) {
+                    const statusClass = node.status;
+                    const cleanLabel = node.label.replace(/"/g, "'");
+                    
+                    switch (node.type) {
+                        case 'start':
+                            mermaidCode += `    ${nodeId}(("${cleanLabel}"))\n`;
+                            break;
+                        case 'process':
+                            mermaidCode += `    ${nodeId}["${cleanLabel}"]\n`;
+                            break;
+                        case 'decision':
+                            mermaidCode += `    ${nodeId}{"${cleanLabel}"}\n`;
+                            break;
+                        case 'end':
+                            mermaidCode += `    ${nodeId}(("${cleanLabel}"))\n`;
+                            break;
+                        default:
+                            mermaidCode += `    ${nodeId}["${cleanLabel}"]\n`;
+                    }
+                    
+                    mermaidCode += `    class ${nodeId} ${statusClass}\n`;
+                }
+                
+                // Add edges
+                for (const [edgeId, edge] of this.edges) {
+                    const arrow = edge.label ? ` -->|${edge.label}| ` : ' --> ';
+                    mermaidCode += `    ${edge.from}${arrow}${edge.to}\n`;
+                }
+                
+                return mermaidCode;
+            }
+
+            async updateDiagram() {
+                this.lastUpdate = Date.now();
+                const container = document.getElementById('mermaidDiagram');
+                if (!container) return;
+                
+                try {
+                    const mermaidCode = this.generateMermaidCode();
+                    
+                    // Clear previous diagram
+                    container.innerHTML = '';
+                    
+                    // Create a unique ID for each render
+                    const diagramId = `workflow-diagram-${Date.now()}`;
+                    
+                    // Generate new diagram
+                    const { svg } = await mermaid.render(diagramId, mermaidCode);
+                    container.innerHTML = svg;
+                    
+                    // Apply status classes to SVG elements
+                    this.applyStatusStyling(container);
+                    
+                } catch (error) {
+                    console.error('Mermaid rendering error:', error);
+                    // Fallback to simple HTML visualization
+                    this.renderFallbackDiagram(container);
+                }
+            }
+
+            renderFallbackDiagram(container) {
+                const sortedNodes = Array.from(this.nodes.values()).sort((a, b) => a.timestamp - b.timestamp);
+                
+                let html = `
+                    <div class="fallback-workflow">
+                        <div class="workflow-status">
+                            <div class="status-dot"></div>
+                            <div class="status-text">Workflow Active</div>
+                        </div>
+                        <div class="workflow-canvas">
+                `;
+                
+                sortedNodes.forEach((node, index) => {
+                    const statusClass = `status-${node.status}`;
+                    const truncatedLabel = node.label.length > 20 ? node.label.substring(0, 17) + '...' : node.label;
+                    
+                    html += `
+                        <div class="n8n-node ${statusClass}">
+                            <div class="node-icon">
+                                <i class="fas ${this.getStatusIcon(node.status)}"></i>
+                            </div>
+                            <div class="node-title">${truncatedLabel}</div>
+                            <div class="node-subtitle">${node.status}</div>
+                        </div>
+                    `;
+                    
+                    if (index < sortedNodes.length - 1) {
+                        const connectionClass = node.status === 'success' ? 'active' : '';
+                        html += `<div class="workflow-connection ${connectionClass}"></div>`;
+                    }
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+                
+                container.innerHTML = html;
+            }
+
+            getStatusIcon(status) {
+                switch (status) {
+                    case 'success': return 'fa-check-circle';
+                    case 'error': return 'fa-times-circle';
+                    case 'progress': return 'fa-spinner fa-spin';
+                    case 'pending': return 'fa-clock';
+                    default: return 'fa-circle';
+                }
+            }
+
+            applyStatusStyling(container) {
+                // Apply animations and styling based on node status
+                for (const [nodeId, node] of this.nodes) {
+                    const nodeElement = container.querySelector(`#${nodeId}`);
+                    if (nodeElement) {
+                        nodeElement.classList.add(`status-${node.status}`);
+                        
+                        // Add pulsing animation for active nodes
+                        if (node.status === 'progress') {
+                            nodeElement.style.animation = 'pulse-progress 1.5s infinite';
+                        } else if (node.status === 'success') {
+                            nodeElement.style.animation = 'pulse-success 2s infinite';
+                        } else if (node.status === 'error') {
+                            nodeElement.style.animation = 'pulse-error 2s infinite';
+                        }
+                    }
+                }
+            }
+
+            clearFlow() {
+                this.nodes.clear();
+                this.edges.clear();
+                this.logs = [];
+                
+                const container = document.getElementById('mermaidDiagram');
+                if (container) {
+                    container.innerHTML = '<div class="text-muted">No workflow data</div>';
+                }
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            const dashboard = new AdvancedTestDashboard();
+            dashboard.initializeWorkflowVisualization();
+            window.dashboard = dashboard;
+        });
+    </script>
+</body>
+</html>

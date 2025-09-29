@@ -65,6 +65,8 @@ class DatabaseService:
                     mp4_video_url VARCHAR(1000),
                     mp4_file_size INTEGER,
                     mp4_download_status VARCHAR(20) DEFAULT 'pending',
+                    transcript TEXT,
+                    transcript_word_count INTEGER,
                     days_structure JSONB,
                     final_project TEXT,
                     resources JSONB,
@@ -124,11 +126,42 @@ class DatabaseService:
                 );
             """)
             
+            # Add transcript columns to existing courses table (migration)
+            cursor.execute("""
+                ALTER TABLE courses 
+                ADD COLUMN IF NOT EXISTS transcript TEXT,
+                ADD COLUMN IF NOT EXISTS transcript_word_count INTEGER;
+            """)
+            
+            # Create course_progress table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS course_progress (
+                    id SERIAL PRIMARY KEY,
+                    course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE,
+                    user_session VARCHAR(100) NOT NULL,
+                    day_1_completed BOOLEAN DEFAULT FALSE,
+                    day_2_completed BOOLEAN DEFAULT FALSE,
+                    day_3_completed BOOLEAN DEFAULT FALSE,
+                    day_4_completed BOOLEAN DEFAULT FALSE,
+                    day_5_completed BOOLEAN DEFAULT FALSE,
+                    day_6_completed BOOLEAN DEFAULT FALSE,
+                    day_7_completed BOOLEAN DEFAULT FALSE,
+                    completion_percentage FLOAT DEFAULT 0.0,
+                    days_completed INTEGER DEFAULT 0,
+                    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    completed_at TIMESTAMP
+                );
+            """)
+            
             # Create indexes
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_courses_youtube_url ON courses(youtube_url);")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_courses_video_id ON courses(video_id);")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_courses_created_at ON courses(created_at);")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_sessions_session_id ON user_sessions(session_id);")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_course_progress_course_id ON course_progress(course_id);")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_course_progress_user_session ON course_progress(user_session);")
+            cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_course_progress_unique ON course_progress(course_id, user_session);")
             
             conn.commit()
             cursor.close()
@@ -140,59 +173,68 @@ class DatabaseService:
                 conn.rollback()
     
     def save_course(self, course_data: Dict[str, Any], video_info: Dict[str, Any], 
-                   metrics: Dict[str, Any]) -> Optional[int]:
+                   metrics: Dict[str, Any], transcript: Optional[str] = None) -> Optional[int]:
         """Save course data to database"""
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
             
+            # Calculate transcript word count if transcript provided
+            transcript_word_count = len(transcript.split()) if transcript else 0
+            
+            # Insert course data with proper field mapping
             cursor.execute("""
                 INSERT INTO courses (
                     youtube_url, video_id, course_title, course_description,
                     target_audience, difficulty_level, estimated_total_time,
                     video_title, video_author, video_duration, video_view_count,
-                    video_published_at, video_thumbnail_url, mp4_video_url,
-                    mp4_file_size, mp4_download_status, cloudinary_url,
-                    cloudinary_public_id, cloudinary_upload_status, days_structure,
-                    final_project, resources, assessment_criteria,
+                    video_published_at, video_thumbnail_url, transcript, transcript_word_count,
+                    days_structure, final_project, resources, assessment_criteria,
                     processing_time, total_cost, quality_score, reliability_grade,
-                    success_rate, status
+                    success_rate, status, mp4_video_url, mp4_file_size, 
+                    mp4_download_status
                 ) VALUES (
-                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                 ) RETURNING id;
             """, (
                 video_info.get('youtube_url', ''),
                 video_info.get('video_id', ''),
-                course_data.get('course_title', ''),
-                course_data.get('course_description', ''),
-                course_data.get('target_audience', ''),
-                course_data.get('difficulty_level', ''),
-                course_data.get('estimated_total_time', ''),
-                video_info.get('title', ''),
-                video_info.get('author', ''),
-                video_info.get('duration', ''),
+                course_data.get('course_title', 'Untitled Course'),
+                course_data.get('course_description', 'Course generated from video'),
+                course_data.get('target_audience', 'General Audience'),
+                course_data.get('difficulty_level', 'Beginner'),
+                course_data.get('estimated_total_time', '7 days'),
+                video_info.get('title', 'Untitled Video'),
+                video_info.get('author', 'Unknown'),
+                video_info.get('duration', 'Unknown'),
                 video_info.get('view_count', 0),
-                video_info.get('published_at', ''),
+                video_info.get('published_at', 'Unknown'),
                 video_info.get('thumbnail_url', ''),
-                video_info.get('mp4_video_url', ''),
-                video_info.get('mp4_file_size', 0),
-                video_info.get('mp4_download_status', 'pending'),
-                video_info.get('cloudinary_url', ''),
-                video_info.get('cloudinary_public_id', ''),
-                video_info.get('cloudinary_upload_status', 'pending'),
+                transcript,
+                transcript_word_count,
                 json.dumps(course_data.get('days', [])),
-                course_data.get('final_project', ''),
+                course_data.get('final_project', 'Complete a project based on the course content'),
                 json.dumps(course_data.get('resources', [])),
-                course_data.get('assessment_criteria', ''),
+                course_data.get('assessment_criteria', 'Completion of daily activities and final project'),
                 metrics.get('processing_time', 0.0),
                 metrics.get('total_cost', 0.0),
-                metrics.get('quality_score', ''),
-                metrics.get('reliability_grade', ''),
+                metrics.get('quality_score', 'C'),
+                metrics.get('reliability_grade', 'C'),
                 metrics.get('overall_success_rate', 0.0),
-                'completed'
+                'completed',
+                video_info.get('mp4_video_url', ''),
+                video_info.get('mp4_file_size', 0),
+                video_info.get('mp4_download_status', 'pending')
             ))
             
-            course_id = cursor.fetchone()[0]
+            result = cursor.fetchone()
+            if result is None:
+                conn.rollback()
+                cursor.close()
+                logger.error("INSERT statement failed - no row returned")
+                return None
+                
+            course_id = result['id']
             conn.commit()
             cursor.close()
             
@@ -201,6 +243,11 @@ class DatabaseService:
             
         except Exception as e:
             logger.error(f"Error saving course: {str(e)}")
+            logger.error(f"Course data keys: {list(course_data.keys()) if course_data else 'None'}")
+            logger.error(f"Video info keys: {list(video_info.keys()) if video_info else 'None'}")
+            logger.error(f"Transcript length: {len(transcript) if transcript else 0}")
+            import traceback
+            logger.error(f"Full traceback: {traceback.format_exc()}")
             if conn:
                 conn.rollback()
             return None
@@ -416,6 +463,83 @@ class DatabaseService:
             logger.error(f"Error getting database stats: {str(e)}")
             return {}
     
+    def get_course_progress(self, course_id: int, user_session: str) -> Optional[Dict[str, Any]]:
+        """Get course progress for a specific user session and course"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            
+            cursor.execute("""
+                SELECT * FROM course_progress 
+                WHERE course_id = %s AND user_session = %s;
+            """, (course_id, user_session))
+            
+            result = cursor.fetchone()
+            cursor.close()
+            
+            if result:
+                return dict(result)
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error getting course progress: {str(e)}")
+            return None
+    
+    def save_course_progress(self, course_id: int, user_session: str, progress_data: Dict[str, bool]) -> bool:
+        """Save or update course progress"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            
+            # Calculate completion stats
+            days_completed = sum(1 for completed in progress_data.values() if completed)
+            completion_percentage = (days_completed / 7) * 100
+            completed_at = datetime.now() if days_completed == 7 else None
+            
+            # Use INSERT ... ON CONFLICT for upsert functionality
+            cursor.execute("""
+                INSERT INTO course_progress (
+                    course_id, user_session, 
+                    day_1_completed, day_2_completed, day_3_completed, day_4_completed,
+                    day_5_completed, day_6_completed, day_7_completed,
+                    completion_percentage, days_completed, completed_at, last_updated
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                ON CONFLICT (course_id, user_session) 
+                DO UPDATE SET 
+                    day_1_completed = EXCLUDED.day_1_completed,
+                    day_2_completed = EXCLUDED.day_2_completed,
+                    day_3_completed = EXCLUDED.day_3_completed,
+                    day_4_completed = EXCLUDED.day_4_completed,
+                    day_5_completed = EXCLUDED.day_5_completed,
+                    day_6_completed = EXCLUDED.day_6_completed,
+                    day_7_completed = EXCLUDED.day_7_completed,
+                    completion_percentage = EXCLUDED.completion_percentage,
+                    days_completed = EXCLUDED.days_completed,
+                    completed_at = EXCLUDED.completed_at,
+                    last_updated = CURRENT_TIMESTAMP;
+            """, (
+                course_id, user_session,
+                progress_data.get('day_1', False),
+                progress_data.get('day_2', False),
+                progress_data.get('day_3', False),
+                progress_data.get('day_4', False),
+                progress_data.get('day_5', False),
+                progress_data.get('day_6', False),
+                progress_data.get('day_7', False),
+                completion_percentage, days_completed, completed_at
+            ))
+            
+            conn.commit()
+            cursor.close()
+            logger.info(f"Course progress saved for course {course_id}, session {user_session}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error saving course progress: {str(e)}")
+            if conn:
+                conn.rollback()
+            return False
+
     def close_connection(self):
         """Close database connection"""
         if self.connection and not self.connection.closed:

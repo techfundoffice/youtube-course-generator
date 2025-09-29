@@ -1,0 +1,153 @@
+Course Generator
+
+Course Generator
+Generated Courses
+Test Dashboard
+API Stats
+New Course
+ Course Generated Successfully
+Course Generator
+Course Result
+ Course Generated Successfully
+B
+Quality Grade
+9.3s
+Processing Time
+$0.0000
+Total Cost
+33.3%
+Success Rate
+Target Audience:
+Difficulty Level:
+Estimated Total Time:
+Number of Days: 0 days
+ Original Video
+
+Video Player is loading.
+Play Video
+PlaySkip Backward
+Mute
+Current Time 0:00
+/
+Duration 16:30
+Loaded: 8.22%
+00:00
+Stream Type LIVE
+Seek to live, currently behind liveLIVE
+Remaining Time -16:30
+ 
+1x
+Playback Rate
+2x
+1.5x
+1.25x
+1x, selected
+0.5x
+Chapters
+Chapters
+Descriptions
+descriptions off, selected
+Captions
+captions settings, opens captions settings dialog
+captions off, selected
+Audio Track
+Picture-in-PictureFullscreen
+This is a modal window.
+
+Beginning of dialog window. Escape will cancel and close the window.
+
+TextColor
+White
+Opacity
+Opaque
+Text BackgroundColor
+Black
+Opacity
+Opaque
+Caption Area BackgroundColor
+Black
+Opacity
+Transparent
+Font Size
+100%
+Text Edge Style
+None
+Font Family
+Proportional Sans-Serif
+Reset restore all settings to the default valuesDone
+Close Modal Dialog
+End of dialog window.
+
+ Download Status: Completed
+ File Size: 44.4 MB
+ 
+Processing Output Logs
+  
+2025-09-28T19:26:26  Course Generation: STARTED - Video URL: https://www.youtube.com/watch?v=DNGPAeX5z40 (Source: youtube)
+2025-09-28T19:26:26  Video Metadata: EXTRACTING - Using YouTube API and fallback methods
+2025-09-28T19:26:26  Video Metadata: SUCCESS - Title: React in 100 Seconds
+2025-09-28T19:26:26  Video Download: STARTING - Processing YouTube video
+2025-09-28T19:26:27  yt-dlp Metadata: FETCHING - Getting video information from YouTube (quality: 720p)
+2025-09-28T19:26:30  yt-dlp Metadata: SUCCESS - Video: 'I Tested 7 AI Course Creation Tools... The Best On' (16m31s)
+2025-09-28T19:26:30  yt-dlp Download: DOWNLOADING - Downloading 720p MP4 video (this may take 10-30 seconds)
+2025-09-28T19:26:34  yt-dlp Download: SUCCESS - Downloaded 44.4 MB MP4 file to local storage
+2025-09-28T19:26:34  Video Download: SUCCESS - Video ready: 44.4 MB - /video/DNGPAeX5z40.mp4
+2025-09-28T19:26:34  Transcript Extraction: EXTRACTING - Using yt-dlp transcript extraction with SABR workarounds
+2025-09-28T19:26:34  yt-dlp Transcript: STARTING - Extracting transcript using yt-dlp with SABR workarounds
+2025-09-28T19:26:34  Transcript Extraction: FETCHING - Extracting transcript using youtube-transcript-api
+2025-09-28T19:26:35  Transcript Extraction: SUCCESS - Extracted transcript with 2782 words
+2025-09-28T19:26:35  yt-dlp Transcript: SUCCESS - Successfully extracted 2782 words using yt-dlp
+2025-09-28T19:26:35  Transcript Extraction: SUCCESS - Transcript length: 14641 characters
+2025-09-28T19:26:35  AI Course Generation: GENERATING - Using OpenRouter, Claude, and fallback generators
+2025-09-28T19:26:36  AI Course Generation: SUCCESS - 7-day course created: N/A
+2025-09-28T19:26:36  Course Generation: COMPLETED - Total time: 9.28s, Quality: B
+2025-09-28T19:26:36  Database: SAVING - Storing course and metrics to PostgreSQL
+2025-09-28T19:26:38  Database: SUCCESS - Course saved with ID: None
+ URL Comparison Table
+Source Type	URL	Status	File Size	Actions
+ Original YouTube	https://www.youtube.com/watch?v=DNGPAeX5z40	Active	Streaming	
+ Downloaded MP4	/video/DNGPAeX5z40.mp4	Completed
+Free fallback system used	44.4 MB	
+ Original YouTube Video
+
+ URL Comparison: The original YouTube URL provides streaming access, while the MP4 URL offers a direct download of the video file for offline viewing and course integration.
+ Premium Cloud Storage Status
+ Processing: Video upload to premium storage in progress...
+Processing
+ Premium storage provides persistent video access, global CDN delivery, and automatic optimization.
+ Course Progress Tracker
+0/7 days completed - 0%
+ Check off days as you complete them. Your progress is automatically saved.
+Just Started
+ 7-Day Course Structure
+ Final Project
+ Additional Resources
+ Processing Details & Reliability Metrics
+Metadata Extraction
+YouTube API:
+✓
+Backup API:
+✗
+Web Scraper:
+✗
+Success Rate:
+33.3%
+Transcript Extraction
+Apify:
+✗
+YouTube Transcript:
+✓
+Backup Service:
+✗
+Success Rate:
+33.3%
+AI Generation
+OpenRouter GPT-4:
+✓
+Claude 3.5:
+✗
+Fallback Generator:
+✗
+Success Rate:
+33.3%
+ Generated with enterprise-grade reliability

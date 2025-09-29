@@ -1,0 +1,304 @@
+View full log for older lines
+View full log
+
+
+2025-07-18T02:38:55.613Z
+2025-07-18T02:38:55.615Z Stderr:
+2025-07-18T02:38:55.616Z ERROR: [youtube] dQw4w9WgXcQ: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
+2025-07-18T02:38:55.618Z
+2025-07-18T02:38:55.620Z     at BasicCrawler.requestHandler (file:///usr/src/app/src/main.js:77:23) {"id":"zbbI1SloGmoMvZb","url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ","retryCount":4}
+2025-07-18T02:38:55.806Z INFO  CRAWLER -- Downloading https://www.youtube.com/watch?v=dQw4w9WgXcQ
+2025-07-18T02:38:56.361Z INFO  Downloading: ===============      72.5%
+2025-07-18T02:38:57.897Z INFO  Downloading: ===============      72.8%
+2025-07-18T02:38:58.997Z INFO  Downloading: ===============      73%
+2025-07-18T02:38:59.723Z INFO  Downloading: ===============      73.2%
+2025-07-18T02:39:00.753Z INFO  Downloading: ===============      73.5%
+2025-07-18T02:39:01.897Z INFO  Downloading: ===============      73.8%
+2025-07-18T02:39:02.596Z INFO  Downloading: ===============      74.1%
+2025-07-18T02:39:03.492Z INFO  Downloading: ===============      74.4%
+2025-07-18T02:39:04.597Z INFO  Downloading: ===============      74.8%
+2025-07-18T02:39:05.497Z INFO  Downloading: ===============      75.1%
+2025-07-18T02:39:06.296Z INFO  Downloading: ===============      75.5%
+2025-07-18T02:39:07.399Z INFO  Downloading: ===============      76%
+2025-07-18T02:39:08.346Z INFO  Downloading: ===============      76.4%
+2025-07-18T02:39:09.398Z INFO  Downloading: ===============      76.9%
+2025-07-18T02:39:10.257Z INFO  Downloading: ===============      77.3%
+2025-07-18T02:39:11.902Z INFO  Downloading: ================     77.7%
+2025-07-18T02:39:12.298Z INFO  Downloading: ================     77.7%
+2025-07-18T02:39:12.300Z INFO  Downloading: ================     77.7%
+2025-07-18T02:39:12.302Z INFO  Downloading: ================     77.8%
+2025-07-18T02:39:12.304Z INFO  Downloading: ================     77.8%
+2025-07-18T02:39:12.502Z INFO  Downloading: ================     77.9%
+2025-07-18T02:39:12.601Z WARN  BasicCrawler: Reclaiming failed request back to the list or queue. Failed to download video. Retrying...
+2025-07-18T02:39:12.603Z  Error:
+2025-07-18T02:39:12.605Z Error code: 1
+2025-07-18T02:39:12.606Z
+2025-07-18T02:39:12.616Z Stderr:
+2025-07-18T02:39:12.618Z ERROR: [youtube] dQw4w9WgXcQ: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
+2025-07-18T02:39:12.619Z
+2025-07-18T02:39:12.621Z     at BasicCrawler.requestHandler (file:///usr/src/app/src/main.js:77:23) {"id":"zbbI1SloGmoMvZb","url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ","retryCount":5}
+2025-07-18T02:39:12.900Z INFO  Downloading: ================     78%
+2025-07-18T02:39:13.159Z INFO  CRAWLER -- Downloading https://www.youtube.com/watch?v=dQw4w9WgXcQ
+2025-07-18T02:39:13.936Z INFO  Downloading: ================     78.2%
+2025-07-18T02:39:14.997Z INFO  Downloading: ================     78.5%
+2025-07-18T02:39:15.786Z INFO  Downloading: ================     78.7%
+2025-07-18T02:39:16.896Z INFO  Downloading: ================     79%
+2025-07-18T02:39:17.798Z INFO  Downloading: ================     79.3%
+2025-07-18T02:39:17.837Z INFO  BasicCrawler:Statistics: BasicCrawler request statistics: {"requestAvgFailedDurationMillis":null,"requestAvgFinishedDurationMillis":null,"requestsFinishedPerMinute":0,"requestsFailedPerMinute":0,"requestTotalDurationMillis":0,"requestsTotal":0,"crawlerRuntimeMillis":300294,"retryHistogram":[]}
+2025-07-18T02:39:17.911Z INFO  BasicCrawler:AutoscaledPool: state {"currentConcurrency":2,"desiredConcurrency":2,"systemStatus":{"isSystemIdle":false,"memInfo":{"isOverloaded":false,"limitRatio":0.2,"actualRatio":0},"eventLoopInfo":{"isOverloaded":false,"limitRatio":0.6,"actualRatio":0.02},"cpuInfo":{"isOverloaded":true,"limitRatio":0.4,"actualRatio":0.605},"clientInfo":{"isOverloaded":false,"limitRatio":0.3,"actualRatio":0}}}
+2025-07-18T02:39:18.934Z INFO  Downloading: ================     79.6%
+2025-07-18T02:39:19.898Z INFO  Downloading: ================     79.8%
+2025-07-18T02:39:21.196Z INFO  Downloading: ================     80.1%
+2025-07-18T02:39:22.497Z INFO  Downloading: ================     80.3%
+2025-07-18T02:39:23.197Z INFO  Downloading: ================     80.5%
+2025-07-18T02:39:24.396Z INFO  Downloading: ================     80.7%
+2025-07-18T02:39:25.227Z INFO  Downloading: ================     80.9%
+2025-07-18T02:39:26.103Z INFO  Downloading: ================     81.1%
+2025-07-18T02:39:27.094Z INFO  Downloading: ================     81.3%
+2025-07-18T02:39:27.798Z WARN  BasicCrawler: Reclaiming failed request back to the list or queue. Failed to download video. Retrying...
+2025-07-18T02:39:27.800Z  Error:
+2025-07-18T02:39:27.801Z Error code: 1
+2025-07-18T02:39:27.803Z
+2025-07-18T02:39:27.805Z Stderr:
+2025-07-18T02:39:27.807Z ERROR: [youtube] dQw4w9WgXcQ: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
+2025-07-18T02:39:27.808Z
+2025-07-18T02:39:27.810Z     at BasicCrawler.requestHandler (file:///usr/src/app/src/main.js:77:23) {"id":"zbbI1SloGmoMvZb","url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ","retryCount":6}
+2025-07-18T02:39:27.963Z INFO  CRAWLER -- Downloading https://www.youtube.com/watch?v=dQw4w9WgXcQ
+2025-07-18T02:39:28.536Z INFO  Downloading: ================     81.6%
+2025-07-18T02:39:29.496Z INFO  Downloading: ================     81.7%
+2025-07-18T02:39:30.496Z INFO  Downloading: ================     81.9%
+2025-07-18T02:39:31.181Z INFO  Downloading: ================     82.1%
+2025-07-18T02:39:32.148Z INFO  Downloading: ================     82.4%
+2025-07-18T02:39:33.298Z INFO  Downloading: =================    82.7%
+2025-07-18T02:39:33.997Z INFO  Downloading: =================    82.9%
+2025-07-18T02:39:35.735Z INFO  Downloading: =================    83.2%
+2025-07-18T02:39:36.696Z INFO  Downloading: =================    83.4%
+2025-07-18T02:39:37.374Z INFO  Downloading: =================    83.6%
+2025-07-18T02:39:38.662Z INFO  Downloading: =================    83.9%
+2025-07-18T02:39:39.518Z INFO  Downloading: =================    84.1%
+2025-07-18T02:39:40.822Z INFO  Downloading: =================    84.4%
+2025-07-18T02:39:41.736Z INFO  Downloading: =================    84.6%
+2025-07-18T02:39:42.693Z INFO  Downloading: =================    84.8%
+2025-07-18T02:39:44.069Z INFO  Downloading: =================    85%
+2025-07-18T02:39:45.022Z INFO  Downloading: =================    85.2%
+2025-07-18T02:39:45.961Z INFO  Downloading: =================    85.4%
+2025-07-18T02:39:46.693Z INFO  Downloading: =================    85.6%
+2025-07-18T02:39:47.549Z INFO  Downloading: =================    85.8%
+2025-07-18T02:39:48.565Z INFO  Downloading: =================    86.1%
+2025-07-18T02:39:49.760Z INFO  Downloading: =================    86.4%
+2025-07-18T02:39:50.725Z INFO  Downloading: =================    86.7%
+2025-07-18T02:39:51.752Z INFO  Downloading: =================    86.9%
+2025-07-18T02:39:52.898Z INFO  Downloading: =================    87.2%
+2025-07-18T02:39:53.574Z INFO  Downloading: =================    87.4%
+2025-07-18T02:39:56.415Z INFO  Downloading: ==================   87.7%
+2025-07-18T02:39:56.919Z INFO  Downloading: ==================   87.9%
+2025-07-18T02:39:57.717Z INFO  Downloading: ==================   88.2%
+2025-07-18T02:39:58.763Z INFO  Downloading: ==================   88.6%
+2025-07-18T02:39:59.579Z INFO  Downloading: ==================   89%
+2025-07-18T02:40:00.533Z INFO  Downloading: ==================   89.4%
+2025-07-18T02:40:01.696Z INFO  Downloading: ==================   89.9%
+2025-07-18T02:40:03.431Z INFO  Downloading: ==================   90.3%
+2025-07-18T02:40:04.072Z INFO  Downloading: ==================   90.6%
+2025-07-18T02:40:05.643Z INFO  Downloading: ==================   90.9%
+2025-07-18T02:40:06.379Z INFO  Downloading: ==================   91.2%
+2025-07-18T02:40:07.701Z INFO  Downloading: ==================   91.5%
+2025-07-18T02:40:08.715Z INFO  Downloading: ==================   91.8%
+2025-07-18T02:40:09.482Z INFO  Downloading: ==================   92%
+2025-07-18T02:40:11.176Z INFO  Downloading: ==================   92.3%
+2025-07-18T02:40:12.006Z INFO  Downloading: ===================  92.5%
+2025-07-18T02:40:12.797Z INFO  Downloading: ===================  92.7%
+2025-07-18T02:40:13.896Z INFO  Downloading: ===================  93%
+2025-07-18T02:40:14.844Z INFO  Downloading: ===================  93.3%
+2025-07-18T02:40:15.797Z INFO  Downloading: ===================  93.6%
+2025-07-18T02:40:16.897Z INFO  Downloading: ===================  93.9%
+2025-07-18T02:40:17.831Z INFO  BasicCrawler:Statistics: BasicCrawler request statistics: {"requestAvgFailedDurationMillis":null,"requestAvgFinishedDurationMillis":null,"requestsFinishedPerMinute":0,"requestsFailedPerMinute":0,"requestTotalDurationMillis":0,"requestsTotal":0,"crawlerRuntimeMillis":360294,"retryHistogram":[]}
+2025-07-18T02:40:17.915Z INFO  BasicCrawler:AutoscaledPool: state {"currentConcurrency":2,"desiredConcurrency":4,"systemStatus":{"isSystemIdle":true,"memInfo":{"isOverloaded":false,"limitRatio":0.2,"actualRatio":0},"eventLoopInfo":{"isOverloaded":false,"limitRatio":0.6,"actualRatio":0},"cpuInfo":{"isOverloaded":false,"limitRatio":0.4,"actualRatio":0.393},"clientInfo":{"isOverloaded":false,"limitRatio":0.3,"actualRatio":0}}}
+2025-07-18T02:40:18.097Z INFO  Downloading: ===================  94.2%
+2025-07-18T02:40:18.797Z INFO  Downloading: ===================  94.4%
+2025-07-18T02:40:20.199Z INFO  Downloading: ===================  94.8%
+2025-07-18T02:40:21.221Z INFO  Downloading: ===================  95%
+2025-07-18T02:40:22.021Z INFO  Downloading: ===================  94.8%
+2025-07-18T02:40:22.023Z INFO  Downloading: ===================  94.8%
+2025-07-18T02:40:22.024Z INFO  Downloading: ===================  94.8%
+2025-07-18T02:40:22.026Z INFO  Downloading: ===================  94.8%
+2025-07-18T02:40:22.207Z INFO  Downloading: ===================  95.2%
+2025-07-18T02:40:22.403Z INFO  Downloading: ===================  94.9%
+2025-07-18T02:40:22.827Z INFO  Downloading: ===================  95.5%
+2025-07-18T02:40:23.164Z INFO  Downloading: ===================  95%
+2025-07-18T02:40:23.982Z INFO  Downloading: ===================  95.2%
+2025-07-18T02:40:24.085Z INFO  Downloading: ===================  95.9%
+2025-07-18T02:40:24.684Z INFO  Downloading: ===================  95.4%
+2025-07-18T02:40:25.179Z INFO  Downloading: ===================  96.2%
+2025-07-18T02:40:26.125Z INFO  Downloading: ===================  95.7%
+2025-07-18T02:40:26.163Z INFO  Downloading: ===================  96.4%
+2025-07-18T02:40:26.710Z INFO  Downloading: ===================  95.9%
+2025-07-18T02:40:26.959Z INFO  Downloading: ===================  96.7%
+2025-07-18T02:40:27.963Z INFO  Downloading: ===================  96.2%
+2025-07-18T02:40:28.330Z INFO  Downloading: ===================  97.1%
+2025-07-18T02:40:28.829Z INFO  Downloading: ===================  96.5%
+2025-07-18T02:40:29.186Z INFO  Downloading: ===================  97.3%
+2025-07-18T02:40:29.825Z INFO  Downloading: ===================  96.8%
+2025-07-18T02:40:30.402Z INFO  Downloading: ==================== 97.6%
+2025-07-18T02:40:31.103Z INFO  Downloading: ===================  97.1%
+2025-07-18T02:40:31.337Z INFO  Downloading: ==================== 97.9%
+2025-07-18T02:40:32.226Z INFO  Downloading: ==================== 98.2%
+2025-07-18T02:40:32.250Z INFO  Downloading: ===================  97.3%
+2025-07-18T02:40:33.064Z INFO  Downloading: ==================== 97.6%
+2025-07-18T02:40:33.505Z INFO  Downloading: ==================== 98.5%
+2025-07-18T02:40:34.015Z INFO  Downloading: ==================== 97.8%
+2025-07-18T02:40:34.479Z INFO  Downloading: ==================== 98.7%
+2025-07-18T02:40:35.250Z INFO  Downloading: ==================== 98.1%
+2025-07-18T02:40:35.490Z INFO  Downloading: ==================== 98.9%
+2025-07-18T02:40:36.350Z INFO  Downloading: ==================== 99.2%
+2025-07-18T02:40:36.565Z INFO  Downloading: ==================== 98.3%
+2025-07-18T02:40:37.537Z INFO  Downloading: ==================== 98.5%
+2025-07-18T02:40:37.885Z INFO  Downloading: ==================== 99.4%
+2025-07-18T02:40:38.184Z INFO  Downloading: ==================== 98.7%
+2025-07-18T02:40:38.756Z INFO  Downloading: ==================== 99.6%
+2025-07-18T02:40:39.597Z INFO  Downloading: ==================== 99.8%
+2025-07-18T02:40:39.858Z INFO  Downloading: ==================== 98.9%
+2025-07-18T02:40:40.170Z INFO  Downloading: ==================== 100%
+2025-07-18T02:40:40.172Z INFO  Downloading: ==================== 100%
+2025-07-18T02:40:40.494Z INFO  Downloading: ==================== 99.1%
+2025-07-18T02:40:40.543Z INFO  Downloading:                      0%
+2025-07-18T02:40:40.545Z INFO  Downloading:                      0.1%
+2025-07-18T02:40:40.546Z INFO  Downloading:                      0.2%
+2025-07-18T02:40:40.548Z INFO  Downloading:                      0.4%
+2025-07-18T02:40:40.745Z INFO  Downloading:                      0.9%
+2025-07-18T02:40:41.177Z INFO  Downloading:                      1.9%
+2025-07-18T02:40:41.639Z INFO  Downloading: ==================== 99.4%
+2025-07-18T02:40:42.061Z INFO  Downloading: =                    3.8%
+2025-07-18T02:40:42.763Z INFO  Downloading: ==================== 99.6%
+2025-07-18T02:40:43.092Z INFO  Downloading: =                    5.9%
+2025-07-18T02:40:43.465Z INFO  Downloading: ==================== 99.8%
+2025-07-18T02:40:43.905Z INFO  Downloading: ==                   8%
+2025-07-18T02:40:44.280Z INFO  Downloading: ==================== 100%
+2025-07-18T02:40:44.287Z INFO  Downloading: ==================== 100%
+2025-07-18T02:40:45.007Z INFO  Downloading: ==                   8%
+2025-07-18T02:40:45.009Z INFO  Downloading: ==                   8.1%
+2025-07-18T02:40:45.011Z INFO  Downloading: ==                   8.2%
+2025-07-18T02:40:45.012Z INFO  Downloading: ==                   8.5%
+2025-07-18T02:40:45.147Z INFO  Downloading: ==                   10.6%
+2025-07-18T02:40:45.219Z INFO  Downloading: ==                   8.9%
+2025-07-18T02:40:45.702Z INFO  Downloading: ==                   9.9%
+2025-07-18T02:40:45.888Z INFO  Downloading: ===                  12.7%
+2025-07-18T02:40:46.633Z INFO  Downloading: ==                   11.8%
+2025-07-18T02:40:47.093Z INFO  Downloading: ===                  15.5%
+2025-07-18T02:40:47.714Z INFO  Downloading: ===                  13.8%
+2025-07-18T02:40:48.035Z INFO  Downloading: ====                 17.8%
+2025-07-18T02:40:48.515Z INFO  Downloading: ===                  15.7%
+2025-07-18T02:40:49.009Z INFO  Downloading: ====                 20.2%
+2025-07-18T02:40:49.391Z INFO  Downloading: ====                 18.1%
+2025-07-18T02:40:49.880Z INFO  Downloading: =====                22.8%
+2025-07-18T02:40:50.067Z INFO  Downloading: ====                 20.7%
+2025-07-18T02:40:51.209Z INFO  Downloading: =====                25.7%
+2025-07-18T02:40:51.373Z INFO  Downloading: =====                24.7%
+2025-07-18T02:40:52.056Z INFO  Downloading: ======               27.9%
+2025-07-18T02:40:52.661Z INFO  Downloading: ======               27.8%
+2025-07-18T02:40:53.299Z INFO  Downloading: ======               30.4%
+2025-07-18T02:40:53.601Z INFO  Downloading: ======               30.1%
+2025-07-18T02:40:54.117Z INFO  Downloading: =======              32.5%
+2025-07-18T02:40:54.722Z INFO  Downloading: =======              32.6%
+2025-07-18T02:40:55.188Z INFO  Downloading: =======              35%
+2025-07-18T02:40:55.641Z INFO  Downloading: =======              34.9%
+2025-07-18T02:40:56.129Z INFO  Downloading: =======              37.4%
+2025-07-18T02:40:56.181Z INFO  Downloading: =======              37.3%
+2025-07-18T02:40:57.237Z INFO  Downloading: ========             39.9%
+2025-07-18T02:40:57.465Z INFO  Downloading: ========             41.9%
+2025-07-18T02:40:58.062Z INFO  Downloading: ========             42.2%
+2025-07-18T02:40:58.308Z INFO  Downloading: =========            45.4%
+2025-07-18T02:40:59.537Z INFO  Downloading: =========            44.9%
+2025-07-18T02:40:59.566Z INFO  Downloading: ==========           49.6%
+2025-07-18T02:41:00.626Z INFO  Downloading: ===========          52.9%
+2025-07-18T02:41:00.644Z INFO  Downloading: =========            46.8%
+2025-07-18T02:41:01.330Z INFO  Downloading: ===========          56.1%
+2025-07-18T02:41:01.511Z INFO  Downloading: ==========           48.5%
+2025-07-18T02:41:02.391Z INFO  Downloading: ==========           50.5%
+2025-07-18T02:41:02.655Z INFO  Downloading: ============         60.5%
+2025-07-18T02:41:03.308Z INFO  Downloading: ===========          52.7%
+2025-07-18T02:41:03.565Z INFO  Downloading: =============        63.8%
+2025-07-18T02:41:04.301Z INFO  Downloading: ===========          55.1%
+2025-07-18T02:41:04.523Z INFO  Downloading: ==============       67.5%
+2025-07-18T02:41:05.332Z INFO  Downloading: ============         57.5%
+2025-07-18T02:41:05.688Z INFO  Downloading: ==============       71.3%
+2025-07-18T02:41:06.277Z INFO  Downloading: ===============      74.5%
+2025-07-18T02:41:06.321Z INFO  Downloading: ============         59.8%
+2025-07-18T02:41:07.385Z INFO  Downloading: ============         62.2%
+2025-07-18T02:41:07.576Z INFO  Downloading: ================     80.1%
+2025-07-18T02:41:08.531Z INFO  Downloading: =================    84.4%
+2025-07-18T02:41:08.568Z INFO  Downloading: =============        64.4%
+2025-07-18T02:41:09.434Z INFO  Downloading: =============        66.3%
+2025-07-18T02:41:09.960Z INFO  Downloading: ==================   88.8%
+2025-07-18T02:41:10.441Z INFO  Downloading: ==============       68.5%
+2025-07-18T02:41:10.813Z INFO  Downloading: ==================   92%
+2025-07-18T02:41:11.270Z INFO  Downloading: ==============       70.6%
+2025-07-18T02:41:11.737Z INFO  Downloading: ===================  95.6%
+2025-07-18T02:41:12.299Z INFO  Downloading: ==================== 99.6%
+2025-07-18T02:41:12.336Z INFO  Downloading: ==================== 100%
+2025-07-18T02:41:12.338Z INFO  Downloading: ==================== 100%
+2025-07-18T02:41:12.436Z INFO  Downloading: ===============      73.2%
+2025-07-18T02:41:13.195Z INFO  Downloading: ===============      75.5%
+2025-07-18T02:41:14.696Z INFO  Downloading: ================     78.4%
+2025-07-18T02:41:14.704Z WARN  BasicCrawler: Reclaiming failed request back to the list or queue. Failed to download video. Retrying...
+2025-07-18T02:41:14.706Z  Error:
+2025-07-18T02:41:14.707Z Error code: 1
+2025-07-18T02:41:14.709Z
+2025-07-18T02:41:14.711Z Stderr:
+2025-07-18T02:41:14.712Z ERROR: Unable to rename file: [Errno 2] No such file or directory: './dQw4w9WgXcQ.f136.mp4.part' -> './dQw4w9WgXcQ.f136.mp4'
+2025-07-18T02:41:14.714Z
+2025-07-18T02:41:14.720Z     at BasicCrawler.requestHandler (file:///usr/src/app/src/main.js:77:23) {"id":"zbbI1SloGmoMvZb","url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ","retryCount":7}
+2025-07-18T02:41:15.490Z INFO  Downloading: ================     80.4%
+2025-07-18T02:41:16.394Z INFO  Downloading: =================    82.8%
+2025-07-18T02:41:17.577Z INFO  Downloading: =================    85.5%
+2025-07-18T02:41:17.831Z INFO  BasicCrawler:Statistics: BasicCrawler request statistics: {"requestAvgFailedDurationMillis":null,"requestAvgFinishedDurationMillis":null,"requestsFinishedPerMinute":0,"requestsFailedPerMinute":0,"requestTotalDurationMillis":0,"requestsTotal":0,"crawlerRuntimeMillis":420294,"retryHistogram":[]}
+2025-07-18T02:41:17.916Z INFO  BasicCrawler:AutoscaledPool: state {"currentConcurrency":1,"desiredConcurrency":4,"systemStatus":{"isSystemIdle":true,"memInfo":{"isOverloaded":false,"limitRatio":0.2,"actualRatio":0},"eventLoopInfo":{"isOverloaded":false,"limitRatio":0.6,"actualRatio":0},"cpuInfo":{"isOverloaded":false,"limitRatio":0.4,"actualRatio":0.068},"clientInfo":{"isOverloaded":false,"limitRatio":0.3,"actualRatio":0}}}
+2025-07-18T02:41:18.122Z INFO  CRAWLER -- Downloading https://www.youtube.com/watch?v=dQw4w9WgXcQ
+2025-07-18T02:41:18.281Z INFO  Downloading: ==================   87.8%
+2025-07-18T02:41:19.646Z INFO  Downloading: ==================   91%
+2025-07-18T02:41:20.657Z INFO  Downloading: ===================  93.4%
+2025-07-18T02:41:21.592Z INFO  Downloading: ===================  95.8%
+2025-07-18T02:41:22.506Z INFO  Downloading: ==================== 98.3%
+2025-07-18T02:41:23.141Z INFO  Downloading: ==================== 100%
+2025-07-18T02:41:23.200Z INFO  Downloading: ==================== 100%
+2025-07-18T02:41:24.097Z WARN  BasicCrawler: Reclaiming failed request back to the list or queue. Failed to download video. Retrying...
+2025-07-18T02:41:24.099Z  Error:
+2025-07-18T02:41:24.101Z Error code: 1
+2025-07-18T02:41:24.103Z
+2025-07-18T02:41:24.104Z Stderr:
+2025-07-18T02:41:24.106Z ERROR: Unable to rename file: [Errno 2] No such file or directory: './dQw4w9WgXcQ.f140.m4a.part' -> './dQw4w9WgXcQ.f140.m4a'
+2025-07-18T02:41:24.108Z ERROR: [Errno 2] No such file or directory: './dQw4w9WgXcQ.f136.mp4'
+2025-07-18T02:41:24.109Z
+2025-07-18T02:41:24.111Z     at BasicCrawler.requestHandler (file:///usr/src/app/src/main.js:77:23) {"id":"zbbI1SloGmoMvZb","url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ","retryCount":2}
+2025-07-18T02:41:32.198Z WARN  BasicCrawler: Reclaiming failed request back to the list or queue. Failed to download video. Retrying...
+2025-07-18T02:41:32.200Z  Error:
+2025-07-18T02:41:32.202Z Error code: 1
+2025-07-18T02:41:32.204Z
+2025-07-18T02:41:32.205Z Stderr:
+2025-07-18T02:41:32.207Z ERROR: [youtube] dQw4w9WgXcQ: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
+2025-07-18T02:41:32.209Z
+2025-07-18T02:41:32.210Z     at BasicCrawler.requestHandler (file:///usr/src/app/src/main.js:77:23) {"id":"zbbI1SloGmoMvZb","url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ","retryCount":8}
+2025-07-18T02:41:32.373Z INFO  CRAWLER -- Downloading https://www.youtube.com/watch?v=dQw4w9WgXcQ
+2025-07-18T02:41:45.225Z WARN  BasicCrawler: Reclaiming failed request back to the list or queue. Failed to download video. Retrying...
+2025-07-18T02:41:45.227Z  Error:
+2025-07-18T02:41:45.230Z Error code: 1
+2025-07-18T02:41:45.231Z
+2025-07-18T02:41:45.233Z Stderr:
+2025-07-18T02:41:45.235Z ERROR: [youtube] dQw4w9WgXcQ: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
+2025-07-18T02:41:45.237Z
+2025-07-18T02:41:45.239Z     at BasicCrawler.requestHandler (file:///usr/src/app/src/main.js:77:23) {"id":"zbbI1SloGmoMvZb","url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ","retryCount":9}
+2025-07-18T02:41:45.488Z INFO  CRAWLER -- Downloading https://www.youtube.com/watch?v=dQw4w9WgXcQ
+2025-07-18T02:42:00.510Z WARN  BasicCrawler: Reclaiming failed request back to the list or queue. Failed to download video. Retrying...
+2025-07-18T02:42:00.512Z  Error:
+2025-07-18T02:42:00.514Z Error code: 1
+2025-07-18T02:42:00.516Z
+2025-07-18T02:42:00.518Z Stderr:
+2025-07-18T02:42:00.519Z ERROR: [youtube] dQw4w9WgXcQ: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
+2025-07-18T02:42:00.521Z
+2025-07-18T02:42:00.523Z     at BasicCrawler.requestHandler (file:///usr/src/app/src/main.js:77:23) {"id":"zbbI1SloGmoMvZb","url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ","retryCount":10}
+2025-07-18T02:42:00.697Z INFO  CRAWLER -- Downloading https://www.youtube.com/watch?v=dQw4w9WgXcQ
+2025-07-18T02:42:17.832Z INFO  BasicCrawler:Statistics: BasicCrawler request statistics: {"requestAvgFailedDurationMillis":null,"requestAvgFinishedDurationMillis":null,"requestsFinishedPerMinute":0,"requestsFailedPerMinute":0,"requestTotalDurationMillis":0,"requestsTotal":0,"crawlerRuntimeMillis":480295,"retryHistogram":[]}
+2025-07-18T02:42:17.997Z INFO  BasicCrawler:AutoscaledPool: state {"currentConcurrency":1,"desiredConcurrency":1,"systemStatus":{"isSystemIdle":false,"memInfo":{"isOverloaded":false,"limitRatio":0.2,"actualRatio":0},"eventLoopInfo":{"isOverloaded":false,"limitRatio":0.6,"actualRatio":0},"cpuInfo":{"isOverloaded":true,"limitRatio":0.4,"actualRatio":0.68},"clientInfo":{"isOverloaded":false,"limitRatio":0.3,"actualRatio":0}}}
+2025-07-18T02:42:33.200Z INFO  Download completed successfully
+2025-07-18T02:42:34.950Z INFO  BasicCrawler: All requests from the queue have been processed, the crawler will shut down.
+2025-07-18T02:42:35.129Z INFO  BasicCrawler: Final request statistics: {"requestsFinished":1,"requestsFailed":0,"retryHistogram":[null,null,null,null,null,null,null,null,null,null,1],"requestAvgFailedDurationMillis":null,"requestAvgFinishedDurationMillis":34124,"requestsFinishedPerMinute":0,"requestsFailedPerMinute":0,"requestTotalDurationMillis":34124,"requestsTotal":1,"crawlerRuntimeMillis":497592}
+2025-07-18T02:42:35.131Z INFO  BasicCrawler: Finished! Total 1 requests: 1 succeeded, 0 failed. {"terminal":true}

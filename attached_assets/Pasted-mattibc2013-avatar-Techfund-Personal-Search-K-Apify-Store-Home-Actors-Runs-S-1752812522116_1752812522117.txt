@@ -1,0 +1,193 @@
+mattibc2013 avatar
+Techfund
+
+Personal
+
+
+Search...
+
+K
+
+
+Apify Store
+Home
+Actors
+Runs
+Saved tasks
+Integrations
+Schedules
+Development
+My Actors
+Insights
+Messaging
+Proxy
+Storage
+Billing
+Settings
+RAM
+5 GB
+/
+32 GB
+Usage
+$4.21
+/
+$39
+
+Join referrals
+First 3 months 20% then 30% recurring commission
+
+Learn more
+
+
+All Actors
+Youtube Video Downloader avatar
+Youtube Video Downloader
+Trial active then $30.00/month
+epctex/youtube-video-downloader
+
+
+1.9
+
+(5)
+
+72
+1.6K
+182
+Crafted by
+epctex avatar
+epctex
+Maintained by Community
+
+Start
+Create task
+API
+
+Effortlessly download YouTube videos of your preferred quality with our user-friendly Video Downloader. Try it now!
+Input
+Information
+Runs
+75
+
+Builds
+1
+
+Integrations
+0
+
+Monitoring
+Issues
+0
+
+Saved tasks
+0
+
+Reviews
+Build
+0.0.617 / latest
+
+Readme
+
+
+Input
+
+Actor - Youtube Video Downloader
+Youtube Video Downloader
+Since Youtube doesn't provide a good and free API to download the videos, this actor should help you to download videos from Youtube.com
+
+The Youtube Video Downloader supports the following features:
+
+Download Video - If you want to get videos on a certain URL, just type the URL.
+Bugs, fixes, updates, and changelog
+This scraper is under active development. If you have any feature requests you can create an issue from here.
+
+Input Parameters
+The input of this scraper should be JSON containing the list of pages on Youtube that should be visited. Required fields are:
+
+startUrls: (Optional) (Array) List of Youtube video URLs you want to download.
+
+quality: (Optional) (String) The desired video resolution. If the exact quality isn't available, it will default to the nearest lower quality option.
+
+proxy: (Required) (Proxy Object) Proxy configuration.
+
+This solution requires the use of Proxy servers, either your own proxy servers or you can use Apify Proxy.
+
+Compute Unit Consumption
+The actor is optimized to run blazing fast and scrape as many items as possible. Therefore, it forefronts all the detailed requests. If the actor doesn't block very often it'll scrape 100 videos in 5 minutes with ~0.08-0.10 compute units.
+
+Youtube Video Downloader Input example
+{
+  "startUrls":[
+    "https://www.youtube.com/watch?v=XqZsoesa55w&ab_channel=PinkfongBabyShark-Kids%27Songs%26Stories",
+    "https://www.youtube.com/watch?v=PsNyag6JGv4&ab_channel=RedBull",
+    "https://www.youtube.com/watch?v=ctEksNz7tqg&ab_channel=RedBull"
+  ],
+  "proxy":{
+    "useApifyProxy":true
+  }
+}
+
+During the Run
+During the run, the actor will output messages letting you know what is going on. Each message always contains a short label specifying which page from the provided list is currently specified. When items are loaded from the page, you should see a message about this event with a loaded item count and total item count for each page.
+
+If you provide incorrect input to the actor, it will immediately stop with a failure state and output an explanation of what is wrong.
+
+Youtube Video Downloader Export
+During the run, the actor stores results into a dataset. Each item is a separate item in the dataset.
+
+You can manage the results in any language (Python, PHP, Node JS/NPM). See the FAQ or our API reference to learn more about getting results from this Youtube Video Downloader actor.
+
+Scraped Youtube Video Downloader Properties
+The structure of each item in Youtube Video Downloader looks like this:
+
+Item Detail
+{
+    "sourceUrl": "https://www.youtube.com/watch?v=ADs8tvU2xDc&ab_channel=RedBull",
+    "downloadUrl": "https://api.apify.com/v2/key-value-stores/fpmCnEkWlRujDgf2d/records/ADs8tvU2xDc.mp4"
+}
+
+Contact
+Please visit us through epctex.com to see all the products that are available for you. If you are looking for any custom integration or so, please reach out to us through the chat box in epctex.com. In need of support? business@epctex.com is at your service.
+
+Actor Metrics
+
+1.6K total users
+
+182 monthly active users
+
+1.9 / 5 (5)
+
+72 bookmarks
+
+>99% runs succeeded
+
+2.1 days issue response
+
+Created in Sep 2023
+
+Modified a day ago
+
+Categories
+
+Videos
+Social media
+Automation
+On this page
+
+Actor - Youtube Video Downloader
+
+Youtube Video Downloader
+
+Bugs, fixes, updates, and changelog
+
+Input Parameters
+
+Compute Unit Consumption
+Youtube Video Downloader Input example
+During the Run
+
+Youtube Video Downloader Export
+
+Scraped Youtube Video Downloader Properties
+
+Contact
+

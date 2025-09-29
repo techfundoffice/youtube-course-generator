@@ -28,15 +28,43 @@ def validate_youtube_url(url: str) -> bool:
     
     return any(re.match(pattern, url) for pattern in youtube_patterns)
 
-def extract_video_id(url: str) -> Optional[str]:
+
+def validate_media_url(url: str) -> bool:
     """
-    Extract YouTube video ID from various URL formats.
+    Validate if a URL is a valid media URL (YouTube only).
     
     Args:
-        url: YouTube URL
+        url: The URL to validate
         
     Returns:
-        Video ID if found, None otherwise
+        True if valid media URL, False otherwise
+    """
+    return validate_youtube_url(url)
+
+def detect_source(url: str) -> str:
+    """
+    Detect the source type of a media URL.
+    
+    Args:
+        url: The URL to analyze
+        
+    Returns:
+        'youtube' or 'unknown'
+    """
+    if validate_youtube_url(url):
+        return 'youtube'
+    else:
+        return 'unknown'
+
+def extract_video_id(url: str) -> Optional[str]:
+    """
+    Extract video ID from various YouTube URL formats.
+    
+    Args:
+        url: YouTube video URL
+        
+    Returns:
+        Video ID if YouTube URL, None otherwise
     """
     if not validate_youtube_url(url):
         return None

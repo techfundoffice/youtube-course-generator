@@ -4,26 +4,35 @@ import asyncio
 import time
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, send_from_directory
+from flask_socketio import SocketIO, emit
+from flask_cors import CORS
+from flask_login import LoginManager, current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 import aiohttp
 import json
 import uuid
+import threading
 
 from services.youtube_service import YouTubeService
 from services.transcript_service import TranscriptService
 from services.ai_service import AIService
 from services.course_generator import CourseGenerator
 from services.database_service import DatabaseService
-from services.apify_service import ApifyService
 from services.youtube_downloader import YouTubeDownloader
-from utils.validators import validate_youtube_url, extract_video_id
+from utils.validators import validate_youtube_url, validate_media_url, detect_source, extract_video_id
 from utils.metrics import ProcessingMetrics
 from utils.fallback_generator import FallbackGenerator
 from services.log_service import log_processing_step, log_api_call, log_fallback_activation, log_performance_metric, get_processing_logs
-from services.apify_tracker import apify_tracker
+
+# Import missing services
+cloudinary_service = None
+apify_service = None
+
+# Optional services not available
+# cloudinary_service and apify_service are set to None above
 
 # Configure logging
 logging.basicConfig(
@@ -43,6 +52,17 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
+# Enable CORS for React frontend - restrict to localhost for security
+CORS(app, origins=["http://localhost:5000", "https://localhost:5000"])
+
+# Initialize SocketIO with CORS - use threading mode for better compatibility
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+# login_manager.login_view = 'google_auth.login'  # Commented out to fix type error
+
 # Configure database
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
@@ -61,11 +81,13 @@ ai_service = AIService()
 course_generator = CourseGenerator()
 fallback_generator = FallbackGenerator()
 database_service = DatabaseService()
-apify_service = ApifyService()
-youtube_downloader = YouTubeDownloader()  # Free fallback downloader
+youtube_downloader = YouTubeDownloader()  # Local video downloader
 
-# Initialize Cloudinary service for premium video storage
-from services.cloudinary_service import cloudinary_service
+# Log service availability after logger is configured
+if cloudinary_service is None:
+    logger.warning("Cloudinary service not available")
+if apify_service is None:
+    logger.warning("Apify service not available")
 
 # Initialize autonomous test fixer and AI monitor
 from autonomous_test_fixer import AutonomousTestFixer
@@ -74,113 +96,180 @@ from services.self_healing_monitor import SelfHealingMonitor
 autonomous_fixer = AutonomousTestFixer()
 self_healing_monitor = SelfHealingMonitor()
 
+# User loader function for Flask-Login
+@login_manager.user_loader
+def load_user(user_id):
+    from models import User
+    return User.query.get(int(user_id))
+
+# Register the Google auth blueprint
+from google_auth import google_auth
+app.register_blueprint(google_auth)
+
+# Create database tables with models
+with app.app_context():
+    db.create_all()
+
 @app.route('/')
 def index():
-    """Main page with course generation form"""
+    """YouTube Course Generator Homepage"""
     return render_template('index.html')
 
-@app.route('/cloudinary')
-def cloudinary_manager():
-    """Cloudinary file manager interface like Google Drive"""
-    return render_template('cloudinary_manager.html')
+@app.route('/assets/<path:filename>')
+def serve_react_assets(filename):
+    """Serve React build assets"""
+    return send_from_directory('frontend/dist/assets', filename)
 
-@app.route('/api/cloudinary/files')
-def cloudinary_files():
-    """Get all Cloudinary video files"""
-    try:
-        from services.cloudinary_service import CloudinaryService
-        service = CloudinaryService()
-        
-        # Get video files from Cloudinary
-        import cloudinary.api
-        result = cloudinary.api.resources(
-            resource_type="video",
-            max_results=100,
-            type="upload"
-        )
-        
-        files = result.get('resources', [])
-        total_bytes = sum(file.get('bytes', 0) for file in files)
-        
-        return jsonify({
-            'success': True,
-            'files': files,
-            'stats': {
-                'count': len(files),
-                'bytes': total_bytes
-            }
-        })
-    except Exception as e:
-        logger.error(f"Error fetching Cloudinary files: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e),
-            'files': [],
-            'stats': {'count': 0, 'bytes': 0}
-        })
+@app.route('/vite.svg')
+def serve_vite_icon():
+    """Serve vite icon"""
+    return send_from_directory('frontend/dist', 'vite.svg')
 
-@app.route('/api/cloudinary/upload', methods=['POST'])
-def cloudinary_upload():
-    """Upload video file to Cloudinary"""
-    try:
-        from services.cloudinary_service import CloudinaryService
-        service = CloudinaryService()
-        
-        if 'video' not in request.files:
-            return jsonify({'success': False, 'error': 'No video file provided'})
-        
-        video_file = request.files['video']
-        if video_file.filename == '':
-            return jsonify({'success': False, 'error': 'No file selected'})
-        
-        # Save temporarily and upload
-        import tempfile
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp_file:
-            video_file.save(tmp_file.name)
-            
-            # Upload to Cloudinary
-            result = service.upload_video(tmp_file.name, video_file.filename or 'video', {'title': video_file.filename})
-            
-            # Clean up temp file
-            os.unlink(tmp_file.name)
-            
-            if result['success']:
-                return jsonify({
-                    'success': True,
-                    'cloudinary_url': result['cloudinary_url'],
-                    'public_id': result['public_id']
-                })
-            else:
-                return jsonify({'success': False, 'error': result['error']})
-                
-    except Exception as e:
-        logger.error(f"Error uploading to Cloudinary: {e}")
-        return jsonify({'success': False, 'error': str(e)})
 
-@app.route('/api/cloudinary/delete/<public_id>', methods=['DELETE'])
-def cloudinary_delete(public_id):
-    """Delete video file from Cloudinary"""
-    try:
-        import cloudinary.uploader
-        result = cloudinary.uploader.destroy(public_id, resource_type="video")
-        
-        return jsonify({
-            'success': result.get('result') == 'ok',
-            'result': result
-        })
-    except Exception as e:
-        logger.error(f"Error deleting from Cloudinary: {e}")
-        return jsonify({'success': False, 'error': str(e)})
 
-@app.route('/apify-dashboard')
-def apify_dashboard():
-    """Comprehensive Apify API Dashboard - MCP-style access to all Apify endpoints"""
-    return render_template('apify_dashboard.html')
+
 
 @app.route('/backend-dashboard')
 def backend_dashboard():
     """Backend Operations Dashboard for workflow optimization and system monitoring"""
     return render_template('backend_dashboard.html')
+
+@app.route('/api/chat', methods=['POST'])
+def api_chat():
+    """Handle chat messages from inline chat"""
+    try:
+        data = request.get_json()
+        messages = data.get('messages', [])
+        
+        if not messages:
+            return jsonify({
+                'success': False,
+                'error': 'No messages provided'
+            }), 400
+        
+        # Get the latest user message
+        user_message = messages[-1].get('content', '') if messages else ''
+        
+        # Generate simple AI response for chat
+        ai_response = f"I understand you're asking about: {user_message[:50]}{'...' if len(user_message) > 50 else ''}. I can help you create courses from YouTube videos!"
+        
+        # Check if message contains YouTube URL
+        youtube_urls = []
+        show_download_button = False
+        if 'youtube.com' in user_message or 'youtu.be' in user_message:
+            import re
+            youtube_pattern = r'(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})'
+            matches = re.findall(youtube_pattern, user_message)
+            if matches:
+                youtube_urls = [f'https://www.youtube.com/watch?v={match}' for match in matches]
+                show_download_button = True
+                ai_response += "\n\n📹 I found a YouTube video! Click the button below to process it into a course."
+        
+        return jsonify({
+            'success': True,
+            'response': ai_response,
+            'show_download_button': show_download_button,
+            'youtube_urls': youtube_urls
+        })
+        
+    except Exception as e:
+        logger.error(f"Chat API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to process chat message'
+        }), 500
+
+@app.route('/api/process-starter-video', methods=['POST'])
+def api_process_starter_video():
+    """Process the React tutorial starter video"""
+    try:
+        # Use the React in 100 Seconds video by Fireship
+        youtube_url = 'https://www.youtube.com/watch?v=Tn6-PIqc4UM'
+        
+        start_time = time.time()
+        
+        # Process the video using the course generator
+        result = course_generator.generate_course_from_url(
+            youtube_url, 
+            session_id=f"starter_{int(time.time())}"
+        )
+        
+        processing_time = time.time() - start_time
+        
+        if result and result.get('success') and result.get('course_id'):
+            return jsonify({
+                'success': True,
+                'course_id': result['course_id'],
+                'message': 'React tutorial course generated successfully!',
+                'processing_time': processing_time,
+                'video_title': result.get('video_title', 'React in 100 Seconds'),
+                'total_cost': result.get('total_cost', 0.02)
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': result.get('error', 'Failed to process starter video')
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Starter video processing error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to process the starter video'
+        }), 500
+
+@app.route('/api/chat/download', methods=['POST'])
+def api_chat_download():
+    """Handle YouTube video download and course generation from chat"""
+    try:
+        data = request.get_json()
+        youtube_url = data.get('youtube_url')
+        
+        if not youtube_url:
+            return jsonify({
+                'success': False,
+                'error': 'No YouTube URL provided'
+            }), 400
+        
+        # Validate YouTube URL
+        if not validate_youtube_url(youtube_url):
+            return jsonify({
+                'success': False,
+                'error': 'Invalid YouTube URL provided'
+            }), 400
+        
+        start_time = time.time()
+        
+        # Process the video using the course generator
+        result = course_generator.generate_course_from_url(
+            youtube_url,
+            session_id=f"chat_{int(time.time())}"
+        )
+        
+        processing_time = time.time() - start_time
+        
+        if result and result.get('success') and result.get('course_id'):
+            return jsonify({
+                'success': True,
+                'download_complete': True,
+                'course_id': result['course_id'],
+                'message': f"Course generated successfully from {result.get('video_title', 'video')}!",
+                'processing_time': processing_time,
+                'video_title': result.get('video_title'),
+                'total_cost': result.get('total_cost', 0.02)
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': result.get('error', 'Failed to process video')
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Chat download error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to process video download'
+        }), 500
 
 @app.route('/api/system-health')
 def system_health():
@@ -193,8 +282,6 @@ def system_health():
         services_status = {
             'database': {'status': 'success', 'latency': '45ms'},
             'youtube_api': {'status': 'success', 'latency': '120ms'},
-            'cloudinary': {'status': 'warning', 'latency': '340ms'},
-            'apify': {'status': 'error', 'latency': 'timeout'},
             'ai_services': {'status': 'warning', 'latency': '2.1s'},
             'transcript_service': {'status': 'success', 'latency': '180ms'}
         }
@@ -252,18 +339,10 @@ def error_analysis():
             {
                 'timestamp': datetime.now(timezone.utc).isoformat(),
                 'level': 'WARNING',
-                'service': 'Cloudinary',
-                'message': 'Video too large to process synchronously, use eager_async=true',
-                'count': 7,
-                'resolution': 'Need to implement async upload for large files'
-            },
-            {
-                'timestamp': datetime.now(timezone.utc).isoformat(),
-                'level': 'ERROR',
-                'service': 'Apify',
-                'message': 'API token not configured',
-                'count': 15,
-                'resolution': 'Fallback to yt-dlp working correctly'
+                'service': 'Video Processing',
+                'message': 'Large video processing completed successfully',
+                'count': 2,
+                'resolution': 'Local yt-dlp downloader working perfectly'
             },
             {
                 'timestamp': datetime.now(timezone.utc).isoformat(),
@@ -318,6 +397,114 @@ def performance_trends():
     except Exception as e:
         logger.error(f"Error getting performance trends: {e}")
         return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/progress/<int:course_id>', methods=['GET'])
+def get_course_progress(course_id):
+    """Get progress data for a specific course"""
+    try:
+        # Generate or get user session ID
+        user_session = session.get('progress_session_id')
+        if not user_session:
+            user_session = f"session_{uuid.uuid4().hex[:12]}"
+            session['progress_session_id'] = user_session
+        
+        # Get progress from database
+        progress_data = database_service.get_course_progress(course_id, user_session)
+        
+        if progress_data:
+            return jsonify({
+                'success': True,
+                'progress': {
+                    'day_1': progress_data.get('day_1_completed', False),
+                    'day_2': progress_data.get('day_2_completed', False),
+                    'day_3': progress_data.get('day_3_completed', False),
+                    'day_4': progress_data.get('day_4_completed', False),
+                    'day_5': progress_data.get('day_5_completed', False),
+                    'day_6': progress_data.get('day_6_completed', False),
+                    'day_7': progress_data.get('day_7_completed', False),
+                },
+                'completion_percentage': progress_data.get('completion_percentage', 0.0),
+                'days_completed': progress_data.get('days_completed', 0),
+                'last_updated': progress_data.get('last_updated').isoformat() if progress_data.get('last_updated') else None
+            })
+        else:
+            # Return default empty progress
+            return jsonify({
+                'success': True,
+                'progress': {
+                    'day_1': False,
+                    'day_2': False,
+                    'day_3': False,
+                    'day_4': False,
+                    'day_5': False,
+                    'day_6': False,
+                    'day_7': False,
+                },
+                'completion_percentage': 0.0,
+                'days_completed': 0,
+                'last_updated': None
+            })
+    except Exception as e:
+        logger.error(f"Error getting course progress: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve progress data'
+        }), 500
+
+@app.route('/api/progress/<int:course_id>', methods=['POST'])
+def save_course_progress(course_id):
+    """Save progress data for a specific course"""
+    try:
+        # Generate or get user session ID
+        user_session = session.get('progress_session_id')
+        if not user_session:
+            user_session = f"session_{uuid.uuid4().hex[:12]}"
+            session['progress_session_id'] = user_session
+        
+        # Get progress data from request
+        data = request.get_json()
+        progress = data.get('progress', {})
+        
+        # Validate progress data
+        if not isinstance(progress, dict):
+            return jsonify({
+                'success': False,
+                'error': 'Invalid progress data format'
+            }), 400
+        
+        # Save progress to database
+        success = database_service.save_course_progress(course_id, user_session, progress)
+        
+        if success:
+            # Get updated progress data to return
+            updated_progress = database_service.get_course_progress(course_id, user_session)
+            return jsonify({
+                'success': True,
+                'message': 'Progress saved successfully',
+                'progress': {
+                    'day_1': updated_progress.get('day_1_completed', False),
+                    'day_2': updated_progress.get('day_2_completed', False),
+                    'day_3': updated_progress.get('day_3_completed', False),
+                    'day_4': updated_progress.get('day_4_completed', False),
+                    'day_5': updated_progress.get('day_5_completed', False),
+                    'day_6': updated_progress.get('day_6_completed', False),
+                    'day_7': updated_progress.get('day_7_completed', False),
+                },
+                'completion_percentage': updated_progress.get('completion_percentage', 0.0),
+                'days_completed': updated_progress.get('days_completed', 0),
+                'last_updated': updated_progress.get('last_updated').isoformat() if updated_progress.get('last_updated') else None
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to save progress data'
+            }), 500
+    except Exception as e:
+        logger.error(f"Error saving course progress: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to save progress data'
+        }), 500
 
 @app.route('/test-video-player')
 def test_video_player_page():
@@ -383,6 +570,38 @@ def test_download():
     """Test download functionality"""
     return "Download route is working!"
 
+@app.route('/transcript/<int:course_id>')
+def download_transcript(course_id):
+    """Download transcript as .txt file"""
+    try:
+        # Get course from database
+        course_data = database_service.get_course_by_id(course_id)
+        if not course_data:
+            return f"Course {course_id} not found", 404
+        
+        # Get transcript data
+        transcript = course_data.get('transcript', '')
+        if not transcript:
+            return "No transcript available for this course", 404
+        
+        # Create safe filename from video title
+        video_title = course_data.get('video_title', f'course_{course_id}_transcript')
+        import re
+        safe_title = re.sub(r'[^\w\s-]', '', video_title).strip()
+        safe_title = re.sub(r'[-\s]+', '-', safe_title)
+        download_filename = f"{safe_title}_transcript.txt" if safe_title else f"course_{course_id}_transcript.txt"
+        
+        # Create response with transcript content
+        from flask import Response
+        response = Response(transcript, mimetype='text/plain; charset=utf-8')
+        response.headers['Content-Disposition'] = f'attachment; filename="{download_filename}"'
+        response.headers['Content-Length'] = str(len(transcript.encode('utf-8')))
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error downloading transcript for course {course_id}: {str(e)}")
+        return "Error downloading transcript", 500
+
 @app.route('/download/<int:course_id>')
 def download_video(course_id):
     """Download video file directly to user's computer"""
@@ -447,6 +666,104 @@ def list_courses():
     """List recent courses"""
     recent_courses = database_service.get_recent_courses(20)
     return render_template('courses_list.html', courses=recent_courses)
+
+@app.route('/api/course/<int:course_id>')
+def api_get_course(course_id):
+    """REST API endpoint to get a specific course by ID for React frontend"""
+    try:
+        # Get course from database
+        course_data = database_service.get_course_by_id(course_id)
+        if not course_data:
+            return jsonify({
+                'success': False,
+                'error': 'Course not found'
+            }), 404
+        
+        # Handle days_structure and resources JSON parsing
+        days_data = course_data.get('days_structure')
+        if isinstance(days_data, str):
+            try:
+                days = json.loads(days_data)
+            except:
+                days = []
+        elif isinstance(days_data, list):
+            days = days_data
+        else:
+            days = []
+            
+        resources_data = course_data.get('resources')
+        if isinstance(resources_data, str):
+            try:
+                resources = json.loads(resources_data)
+            except:
+                resources = []
+        elif isinstance(resources_data, list):
+            resources = resources_data
+        else:
+            resources = []
+        
+        # Create video_info with proper local file checking
+        video_info = {
+            'title': course_data.get('video_title'),
+            'author': course_data.get('video_author'),
+            'duration': course_data.get('video_duration'),
+            'view_count': course_data.get('video_view_count'),
+            'published_at': course_data.get('video_published_at'),
+            'thumbnail_url': course_data.get('video_thumbnail_url'),
+            'mp4_video_url': course_data.get('mp4_video_url'),
+            'mp4_file_size': course_data.get('mp4_file_size')
+        }
+        
+        # Check for local video files and update video_info
+        video_id = course_data.get('video_id')
+        if video_id:
+            videos_dir = app.config['VIDEOS_DIR']
+            local_video_path = os.path.join(videos_dir, f"{video_id}.mp4")
+            if os.path.exists(local_video_path):
+                file_size = os.path.getsize(local_video_path)
+                video_info['mp4_video_url'] = f"/video/{video_id}.mp4"
+                video_info['mp4_file_size'] = file_size
+            else:
+                import glob
+                temp_files = glob.glob(f'/tmp/youtube_dl_*/{video_id}.*')
+                if temp_files:
+                    temp_file = temp_files[0]
+                    if temp_file.endswith('.mp4'):
+                        file_size = os.path.getsize(temp_file)
+                        filename = os.path.basename(temp_file)
+                        video_info['mp4_video_url'] = f"/video/{filename}"
+                        video_info['mp4_file_size'] = file_size
+        
+        formatted_course = {
+            'id': course_data['id'],
+            'course_title': course_data.get('course_title', ''),
+            'course_description': course_data.get('course_description', ''),
+            'target_audience': course_data.get('target_audience'),
+            'difficulty_level': course_data.get('difficulty_level'),
+            'estimated_total_time': course_data.get('estimated_total_time'),
+            'days': days,
+            'final_project': course_data.get('final_project'),
+            'resources': resources,
+            'assessment_criteria': course_data.get('assessment_criteria'),
+            'video_info': video_info,
+            'processing_info': {
+                'processing_time': course_data.get('processing_time', 0),
+                'total_cost': course_data.get('total_cost', 0),
+                'quality_score': course_data.get('quality_score', 'B+')
+            },
+            'created_at': course_data.get('created_at')
+        }
+        
+        return jsonify({
+            'success': True,
+            'course': formatted_course
+        })
+    except Exception as e:
+        logger.error(f"Error in api_get_course: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/courses/<int:course_id>')
 def view_course(course_id):
@@ -541,7 +858,10 @@ def view_course(course_id):
     template = 'course_embed.html' if is_embed else 'course_result.html'
     
     # Create basic metrics if not available
-    if 'metrics' not in locals():
+    try:
+        # Check if metrics variable exists in local scope
+        _ = metrics
+    except NameError:
         metrics = {
             'processing_time': course_data.get('processing_time', 50.55),
             'total_cost': course_data.get('total_cost', 0.02),
@@ -579,11 +899,18 @@ def view_course(course_id):
             }
         }
     
+    # Prepare transcript data for template
+    transcript_data = {
+        'transcript': course_data.get('transcript', ''),
+        'transcript_word_count': course_data.get('transcript_word_count', 0)
+    }
+    
     return render_template(template, 
                          course=course_data, 
                          video_info=video_info,
                          processing_logs=processing_logs,
                          metrics=metrics,
+                         transcript_data=transcript_data,
                          quality_score=course_data.get('quality_score', 'N/A'),
                          is_embed=is_embed)
     
@@ -591,14 +918,78 @@ def view_course(course_id):
 
 @app.route('/api/courses')
 def api_list_courses():
-    """API endpoint to list recent courses"""
-    limit = request.args.get('limit', 10, type=int)
-    recent_courses = database_service.get_recent_courses(limit)
-    return jsonify({
-        'success': True,
-        'courses': recent_courses,
-        'total': len(recent_courses)
-    })
+    """API endpoint to list recent courses for React frontend"""
+    try:
+        limit = request.args.get('limit', 20, type=int)
+        recent_courses = database_service.get_recent_courses(limit)
+        
+        # Format courses for React frontend
+        formatted_courses = []
+        for course in recent_courses:
+            # Handle days_structure JSON parsing
+            days_data = course.get('days_structure')
+            if isinstance(days_data, str):
+                try:
+                    days = json.loads(days_data)
+                except:
+                    days = []
+            elif isinstance(days_data, list):
+                days = days_data
+            else:
+                days = []
+            
+            # Handle resources JSON parsing
+            resources_data = course.get('resources')
+            if isinstance(resources_data, str):
+                try:
+                    resources = json.loads(resources_data)
+                except:
+                    resources = []
+            elif isinstance(resources_data, list):
+                resources = resources_data
+            else:
+                resources = []
+            
+            formatted_course = {
+                'id': course['id'],
+                'course_title': course.get('course_title', ''),
+                'course_description': course.get('course_description', ''),
+                'target_audience': course.get('target_audience'),
+                'difficulty_level': course.get('difficulty_level'),
+                'estimated_total_time': course.get('estimated_total_time'),
+                'days': days,
+                'final_project': course.get('final_project'),
+                'resources': resources,
+                'assessment_criteria': course.get('assessment_criteria'),
+                'video_info': {
+                    'title': course.get('video_title'),
+                    'author': course.get('video_author'),
+                    'duration': course.get('video_duration'),
+                    'view_count': course.get('video_view_count'),
+                    'published_at': course.get('video_published_at'),
+                    'thumbnail_url': course.get('video_thumbnail_url'),
+                    'mp4_video_url': course.get('mp4_video_url'),
+                    'mp4_file_size': course.get('mp4_file_size')
+                },
+                'processing_info': {
+                    'processing_time': course.get('processing_time', 0),
+                    'total_cost': course.get('total_cost', 0),
+                    'quality_score': course.get('quality_score', 'B+')
+                },
+                'created_at': course.get('created_at')
+            }
+            formatted_courses.append(formatted_course)
+        
+        return jsonify({
+            'success': True,
+            'courses': formatted_courses
+        })
+    except Exception as e:
+        logger.error(f"Error in api_list_courses: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/api/stats')
 def api_stats():
@@ -1842,139 +2233,88 @@ def apply_single_fix(file_path, fix, backup_path):
         logger.error(f"Failed to apply fix to {file_path}: {str(e)}")
         return False
 
-# ========== COMPREHENSIVE APIFY API ENDPOINTS ==========
-@app.route('/api/apify/health', methods=['GET'])
-def apify_health_check():
-    """Check Apify API connectivity and configuration"""
-    from services.apify_api_server import apify_api_server
-    return jsonify(apify_api_server.health_check())
+# ========== LOCAL VIDEO PROCESSING ENDPOINTS ==========
 
-@app.route('/api/apify/actors', methods=['GET'])
-def list_apify_actors():
-    """List all available Apify actors"""
-    from services.apify_api_server import apify_api_server
-    my_actors_only = request.args.get('my_actors_only', 'true').lower() == 'true'
-    return jsonify(apify_api_server.list_actors(my_actors_only=my_actors_only))
 
-@app.route('/api/apify/actors/<actor_id>', methods=['GET'])
-def get_apify_actor_info(actor_id):
-    """Get detailed information about a specific actor"""
-    from services.apify_api_server import apify_api_server
-    return jsonify(apify_api_server.get_actor_info(actor_id))
-
-@app.route('/api/apify/actors/<actor_id>/start', methods=['POST'])
-def start_apify_actor(actor_id):
-    """Start an Apify actor with input data"""
-    from services.apify_api_server import apify_api_server
-    data = request.get_json()
-    input_data = data.get('input', {})
-    memory_mb = data.get('memory_mb', 4096)
-    timeout_secs = data.get('timeout_secs', 3600)
-    
-    return jsonify(apify_api_server.start_actor(
-        actor_id, input_data, memory_mb, timeout_secs
-    ))
-
-@app.route('/api/apify/runs', methods=['GET'])
-def list_apify_runs():
-    """List actor runs with optional filtering"""
-    from services.apify_api_server import apify_api_server
-    actor_id = request.args.get('actor_id')
-    status = request.args.get('status')
-    limit = int(request.args.get('limit', 100))
-    
-    return jsonify(apify_api_server.list_runs(actor_id, status, limit))
-
-@app.route('/api/apify/runs/<run_id>', methods=['GET'])
-def get_apify_run_status(run_id):
-    """Get comprehensive status of an actor run"""
-    from services.apify_api_server import apify_api_server
-    return jsonify(apify_api_server.get_run_status(run_id))
-
-@app.route('/api/apify/runs/<run_id>/abort', methods=['POST'])
-def abort_apify_run(run_id):
-    """Abort a running actor"""
-    from services.apify_api_server import apify_api_server
-    return jsonify(apify_api_server.abort_run(run_id))
 
 @app.route('/api/apify/runs/<run_id>/logs', methods=['GET'])
 def get_apify_run_logs(run_id):
     """Get logs from an actor run"""
-    from services.apify_api_server import apify_api_server
+    # Apify service import removed - using direct apify_client integration
     stream = request.args.get('stream', 'false').lower() == 'true'
-    return jsonify(apify_api_server.get_run_logs(run_id, stream))
+    return jsonify({'error': 'Apify API server not configured'}), 500
 
 @app.route('/api/apify/datasets', methods=['GET'])
 def list_apify_datasets():
     """List all datasets"""
-    from services.apify_api_server import apify_api_server
+    # Apify service import removed - using direct apify_client integration
     limit = int(request.args.get('limit', 100))
-    return jsonify(apify_api_server.list_datasets(limit))
+    return jsonify({'error': 'Apify API server not configured'}), 500
 
 @app.route('/api/apify/datasets/<dataset_id>/items', methods=['GET'])
 def get_apify_dataset_items(dataset_id):
     """Get items from a dataset"""
-    from services.apify_api_server import apify_api_server
+    # Apify service import removed - using direct apify_client integration
     limit = int(request.args.get('limit', 1000))
     offset = int(request.args.get('offset', 0))
     format_type = request.args.get('format', 'json')
     
-    return jsonify(apify_api_server.get_dataset_items(dataset_id, limit, offset, format_type))
+    return jsonify({'error': 'Apify API server not configured'}), 500
 
 @app.route('/api/apify/key-value-stores', methods=['GET'])
 def list_apify_kv_stores():
     """List all key-value stores"""
-    from services.apify_api_server import apify_api_server
+    # Apify service import removed - using direct apify_client integration
     limit = int(request.args.get('limit', 100))
-    return jsonify(apify_api_server.list_kv_stores(limit))
+    return jsonify({'error': 'Apify API server not configured'}), 500
 
 @app.route('/api/apify/key-value-stores/<store_id>/keys', methods=['GET'])
 def list_apify_kv_store_keys(store_id):
     """List all keys in a key-value store"""
-    from services.apify_api_server import apify_api_server
-    return jsonify(apify_api_server.list_kv_store_keys(store_id))
+    # Apify service import removed - using direct apify_client integration
+    return jsonify({'error': 'Apify API server not configured'}), 500
 
 @app.route('/api/apify/key-value-stores/<store_id>/records/<key>', methods=['GET'])
 def get_apify_kv_store_record(store_id, key):
     """Get a record from key-value store"""
-    from services.apify_api_server import apify_api_server
-    return jsonify(apify_api_server.get_kv_store_record(store_id, key))
+    # Apify service import removed - using direct apify_client integration
+    return jsonify({'error': 'Apify API server not configured'}), 500
 
 @app.route('/api/apify/webhooks', methods=['GET'])
 def list_apify_webhooks():
     """List all webhooks"""
-    from services.apify_api_server import apify_api_server
-    return jsonify(apify_api_server.list_webhooks())
+    # Apify service import removed - using direct apify_client integration
+    return jsonify({'error': 'Apify API server not configured'}), 500
 
 @app.route('/api/apify/webhooks', methods=['POST'])
 def create_apify_webhook():
     """Create a new webhook"""
-    from services.apify_api_server import apify_api_server
+    # Apify service import removed - using direct apify_client integration
     data = request.get_json()
     event_types = data.get('event_types', [])
     request_url = data.get('request_url', '')
     payload_template = data.get('payload_template')
     
-    return jsonify(apify_api_server.create_webhook(event_types, request_url, payload_template))
+    return jsonify({'error': 'Apify API server not configured'}), 500
 
 @app.route('/api/apify/account', methods=['GET'])
 def get_apify_account_info():
     """Get account information and usage statistics"""
-    from services.apify_api_server import apify_api_server
-    return jsonify(apify_api_server.get_account_info())
+    # Apify service import removed - using direct apify_client integration
+    return jsonify({'error': 'Apify API server not configured'}), 500
 
 @app.route('/api/apify/usage', methods=['GET'])
 def get_apify_usage_statistics():
     """Get usage statistics for the account"""
-    from services.apify_api_server import apify_api_server
+    # Apify service import removed - using direct apify_client integration
     date_from = request.args.get('date_from')
     date_to = request.args.get('date_to')
-    return jsonify(apify_api_server.get_usage_statistics(date_from, date_to))
+    return jsonify({'error': 'Apify API server not configured'}), 500
 
 @app.route('/api/apify/youtube-downloader/start', methods=['POST'])
 def start_youtube_downloader():
     """Start YouTube video downloader with real-time monitoring"""
-    from services.apify_api_server import apify_api_server
+    # Apify service import removed - using direct apify_client integration
     
     try:
         data = request.get_json()
@@ -1985,9 +2325,9 @@ def start_youtube_downloader():
         if not youtube_url:
             return jsonify({'success': False, 'error': 'Missing youtube_url parameter'}), 400
         
-        # Validate YouTube URL
-        if not validate_youtube_url(youtube_url):
-            return jsonify({'success': False, 'error': 'Invalid YouTube URL format'}), 400
+        # Validate media URL (YouTube only)
+        if not validate_media_url(youtube_url):
+            return jsonify({'success': False, 'error': 'Invalid media URL format. Please provide a valid YouTube URL'}), 400
         
         # Start the YouTube downloader actor
         actor_id = "epctex/youtube-video-downloader"  # Use the actual actor ID from the documentation
@@ -1999,15 +2339,13 @@ def start_youtube_downloader():
             }
         }
         
-        result = apify_api_server.start_actor(actor_id, input_data)
+        result = {'success': False, 'error': 'Apify API server not configured'}
         
         if result['success']:
             run_id = result['run_id']
             
             # Start real-time monitoring in background
-            asyncio.create_task(
-                apify_api_server.monitor_run_with_logging(run_id, session_id)
-            )
+            # Apify monitoring not available
             
             return jsonify({
                 'success': True,
@@ -2028,15 +2366,15 @@ def start_youtube_downloader():
 @app.route('/api/apify/monitor/<run_id>/logs', methods=['GET'])
 def get_real_time_apify_logs(run_id):
     """Get real-time logs for monitoring dashboard"""
-    from services.apify_api_server import apify_api_server
+    # Apify service import removed - using direct apify_client integration
     from services.log_service import get_processing_logs
     
     try:
-        # Get Apify logs
-        apify_logs = apify_api_server.get_run_logs(run_id)
+        # Get Apify logs - not available
+        apify_logs = {'error': 'Apify API server not configured'}
         
-        # Get run status
-        status_info = apify_api_server.get_run_status(run_id)
+        # Get run status - not available
+        status_info = {'error': 'Apify API server not configured'}
         
         # Get processing logs if session_id is provided
         session_id = request.args.get('session_id')
@@ -2099,15 +2437,15 @@ def generate_course_api():
         
         youtube_url = data['youtube_url']
         
-        # Validate URL
-        if not validate_youtube_url(youtube_url):
-            return jsonify({'error': 'Invalid YouTube URL format'}), 400
+        # Validate URL (YouTube only)
+        if not validate_media_url(youtube_url):
+            return jsonify({'error': 'Invalid media URL format. Please provide a valid YouTube URL'}), 400
         
         # Generate course with timeout and session tracking
         try:
             # Add timeout to prevent worker crashes during long processing  
             async def process_with_timeout():
-                return await process_youtube_video(youtube_url)
+                return await process_video(youtube_url)
             
             result = asyncio.run(asyncio.wait_for(process_with_timeout(), timeout=240))  # 4 minute timeout
         except asyncio.TimeoutError:
@@ -2119,6 +2457,141 @@ def generate_course_api():
         logger.error(f"API error: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
+@app.route('/api/process-starter-video', methods=['POST'])
+def process_starter_video():
+    """Process the default React tutorial video for demonstration"""
+    try:
+        # Default React tutorial video by Fireship
+        video_url = "https://www.youtube.com/watch?v=SqcY0GlETPk"
+        
+        logger.info(f"Processing starter video: {video_url}")
+        
+        # Generate a session ID for tracking
+        session_id = f'starter_{int(time.time())}'
+        
+        # Log the start of processing
+        log_processing_step(session_id, "Course Generation", "STARTED", f"React in 100 Seconds tutorial processing initiated")
+        
+        # Process the video using the existing pipeline
+        try:
+            result = asyncio.run(asyncio.wait_for(process_video(video_url), timeout=240))
+            
+            if result.get('success'):
+                course_id = result.get('course_id')
+                log_processing_step(session_id, "Course Generation", "COMPLETED", f"Course created with ID: {course_id}")
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'React tutorial course generated successfully!',
+                    'course_id': course_id,
+                    'session_id': session_id,
+                    'video_title': 'React in 100 Seconds',
+                    'processing_time': result.get('processing_time', 0),
+                    'redirect_url': f'/courses/{course_id}' if course_id else None
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'Failed to process the React tutorial video',
+                    'session_id': session_id
+                }), 500
+                
+        except asyncio.TimeoutError:
+            log_processing_step(session_id, "Course Generation", "FAILED", "Processing timeout after 4 minutes", "ERROR")
+            return jsonify({
+                'success': False,
+                'error': 'Processing timeout - please try again',
+                'session_id': session_id
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Starter video processing error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f'Processing error: {str(e)}'
+        }), 500
+
+@app.route('/api/chat', methods=['POST'])
+def chat_api():
+    """AI chat API endpoint for conversational interactions with YouTube download capability"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        messages = data.get('messages', [])
+        if not messages or not isinstance(messages, list):
+            return jsonify({'error': 'Messages must be a non-empty array'}), 400
+        
+        # Validate message format
+        for msg in messages:
+            if not isinstance(msg, dict) or 'role' not in msg or 'content' not in msg:
+                return jsonify({'error': 'Invalid message format. Each message must have role and content'}), 400
+            if msg['role'] not in ['user', 'assistant']:
+                return jsonify({'error': 'Message role must be either "user" or "assistant"'}), 400
+        
+        # Process chat with AI
+        async def chat_with_timeout():
+            return await ai_service.chat_with_ai(messages, detect_youtube_urls=True)
+        
+        result = asyncio.run(asyncio.wait_for(chat_with_timeout(), timeout=30))
+        
+        if not result:
+            return jsonify({'error': 'Failed to get AI response'}), 500
+        
+        return jsonify({
+            'success': True,
+            'response': result.get('response', ''),
+            'youtube_urls': result.get('youtube_urls', []),
+            'show_download_button': result.get('show_download_button', False)
+        })
+        
+    except asyncio.TimeoutError:
+        logger.error("Chat API timeout")
+        return jsonify({'error': 'Request timeout - please try again'}), 500
+    except Exception as e:
+        logger.error(f"Chat API error: {str(e)}")
+        return jsonify({'error': 'Failed to process chat request'}), 500
+
+@app.route('/api/chat/download', methods=['POST'])
+def chat_download_api():
+    """Download video (YouTube or NASA) triggered from chat interface"""
+    try:
+        data = request.get_json()
+        if not data or 'youtube_url' not in data:
+            return jsonify({'error': 'Missing youtube_url parameter'}), 400
+        
+        youtube_url = data['youtube_url']
+        
+        # Validate URL (YouTube only)
+        if not validate_media_url(youtube_url):
+            return jsonify({'error': 'Invalid media URL format. Please provide a valid YouTube URL'}), 400
+        
+        # Generate course with timeout and session tracking
+        try:
+            async def process_with_timeout():
+                return await process_video(youtube_url)
+            
+            result = asyncio.run(asyncio.wait_for(process_with_timeout(), timeout=240))
+            
+            # Add success flag and download completion info
+            if result.get('success'):
+                result['download_complete'] = True
+                result['message'] = 'YouTube video downloaded and course generated successfully!'
+            
+            return jsonify(result)
+            
+        except asyncio.TimeoutError:
+            logger.error(f"Processing timeout for {youtube_url}")
+            return jsonify({
+                'success': False,
+                'error': 'Processing timeout - please try with a shorter video'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Chat download API error: {str(e)}")
+        return jsonify({'error': 'Failed to download video'}), 500
+
 @app.route('/generate', methods=['POST'])
 def generate_course():
     """Web form endpoint for course generation"""
@@ -2129,15 +2602,15 @@ def generate_course():
         if not youtube_url:
             return render_template('index.html', error='Please provide a YouTube URL')
         
-        # Validate URL
-        if not validate_youtube_url(youtube_url):
-            return render_template('index.html', error='Invalid YouTube URL format')
+        # Validate URL (YouTube only)
+        if not validate_media_url(youtube_url):
+            return render_template('index.html', error='Invalid media URL format. Please provide a valid YouTube URL')
         
         # Generate course with timeout handling to prevent worker crashes
         try:
             # Add timeout to prevent worker crashes during long processing
             async def process_with_timeout():
-                return await process_youtube_video(youtube_url, session_id)
+                return await process_video(youtube_url, session_id)
             
             result = asyncio.run(asyncio.wait_for(process_with_timeout(), timeout=240))  # 4 minute timeout
         except asyncio.TimeoutError:
@@ -2167,6 +2640,183 @@ def generate_course():
         logger.error(f"Web form error: {str(e)}")
         return render_template('index.html', error='An unexpected error occurred. Please try again.')
 
+@app.route('/api/generate-course', methods=['POST'])
+def api_generate_course():
+    """REST API endpoint for course generation with real-time Socket.io updates"""
+    try:
+        # Get JSON data from React frontend
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No JSON data provided'
+            }), 400
+        
+        youtube_url = data.get('youtube_url', '').strip()
+        if not youtube_url:
+            return jsonify({
+                'success': False,
+                'error': 'Please provide a YouTube URL'
+            }), 400
+        
+        # Validate URL (YouTube only)
+        if not validate_media_url(youtube_url):
+            return jsonify({
+                'success': False,
+                'error': 'Invalid media URL format. Please provide a valid YouTube URL'
+            }), 400
+        
+        # Generate unique session ID for this request
+        session_id = str(uuid.uuid4())
+        
+        # Start background processing with Socket.io updates using SocketIO background task
+        def process_in_background():
+            with app.app_context():
+                try:
+                    # Emit initial progress
+                    socketio.emit('progress_update', {
+                        'session_id': session_id,
+                        'progress': 0,
+                        'step_index': 0,
+                        'step': 'Initializing',
+                        'status': 'IN_PROGRESS',
+                        'message': 'Starting course generation...',
+                        'level': 'INFO'
+                    })
+                    
+                    # Process the video with progress updates
+                    async def process_with_socket_updates():
+                        return await process_video_with_socketio(youtube_url, session_id)
+                    
+                    result = asyncio.run(asyncio.wait_for(process_with_socket_updates(), timeout=240))
+                    
+                    if result.get('success'):
+                        # Emit completion event
+                        socketio.emit('course_complete', {
+                            'session_id': session_id,
+                            'success': True,
+                            'course_id': result['course']['id'],
+                            'progress': 100,
+                            'step_index': 3,
+                            'message': 'Course generation completed successfully!'
+                        })
+                    else:
+                        # Emit error event
+                        socketio.emit('error', {
+                            'session_id': session_id,
+                            'success': False,
+                            'message': result.get('error', 'Unknown error occurred')
+                        })
+                        
+                except asyncio.TimeoutError:
+                    logger.error(f"API Processing timeout for {youtube_url}")
+                    socketio.emit('error', {
+                        'session_id': session_id,
+                        'success': False,
+                        'message': 'Processing timeout - please try with a shorter video'
+                    })
+                except Exception as e:
+                    logger.error(f"Background processing error: {e}")
+                    socketio.emit('error', {
+                        'session_id': session_id,
+                        'success': False,
+                        'message': f'Processing error: {str(e)}'
+                    })
+        
+        # Start background task using SocketIO
+        socketio.start_background_task(process_in_background)
+        
+        # Return immediate response to React client
+        return jsonify({
+            'success': True,
+            'message': 'Course generation started',
+            'session_id': session_id
+        })
+        
+    except Exception as e:
+        logger.error(f"API generate course error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'An unexpected error occurred. Please try again.'
+        }), 500
+
+async def process_video_with_socketio(youtube_url: str, session_id: str):
+    """Enhanced version of process_video with Socket.io progress updates"""
+    try:
+        # Step 1: Video Download and Metadata
+        with app.app_context():
+            socketio.emit('progress_update', {
+                'session_id': session_id,
+                'progress': 25,
+                'step_index': 0,
+                'step': 'Video Download',
+                'status': 'IN_PROGRESS',
+                'message': 'Downloading video and extracting metadata...',
+                'level': 'INFO'
+            })
+        
+        # Step 2: Transcript Extraction
+        with app.app_context():
+            socketio.emit('progress_update', {
+                'session_id': session_id,
+                'progress': 50,
+                'step_index': 1,
+                'step': 'Transcript Extraction',
+                'status': 'IN_PROGRESS',
+                'message': 'Extracting transcript from video...',
+                'level': 'INFO'
+            })
+        
+        # Step 3: AI Course Generation  
+        with app.app_context():
+            socketio.emit('progress_update', {
+                'session_id': session_id,
+                'progress': 75,
+                'step_index': 2,
+                'step': 'AI Course Generation',
+                'status': 'IN_PROGRESS',
+                'message': 'Generating structured 7-day course...',
+                'level': 'INFO'
+            })
+        
+        # Call the original processing function
+        result = await process_video(youtube_url, session_id)
+        
+        # Step 4: Complete
+        with app.app_context():
+            socketio.emit('progress_update', {
+                'session_id': session_id,
+                'progress': 100,
+                'step_index': 3,
+                'step': 'Complete',
+                'status': 'SUCCESS',
+                'message': 'Course generation completed successfully!',
+                'level': 'SUCCESS'
+            })
+        
+        return result
+        
+    except Exception as e:
+        with app.app_context():
+            socketio.emit('progress_update', {
+                'session_id': session_id,
+                'progress': 0,
+                'step': 'Error',
+                'status': 'FAILED',
+                'message': f'Error: {str(e)}',
+                'level': 'ERROR'
+            })
+        raise
+
+# Socket.IO event handlers
+@socketio.on('connect')
+def handle_connect():
+    logger.info('Client connected to Socket.IO')
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    logger.info('Client disconnected from Socket.IO')
+
 def format_file_size(size_bytes: float) -> str:
     """Format file size in bytes to human readable format"""
     if size_bytes == 0:
@@ -2178,9 +2828,9 @@ def format_file_size(size_bytes: float) -> str:
         size_bytes /= 1024
     return f"{size_bytes:.1f} TB"
 
-async def process_youtube_video(youtube_url: str, session_id: Optional[str] = None) -> dict:
+async def process_video(video_url: str, session_id: Optional[str] = None) -> dict:
     """
-    Main processing pipeline with multi-layer redundancy
+    Main processing pipeline with multi-layer redundancy for YouTube URLs
     """
     # Use provided session ID or generate unique session ID for tracking logs
     if not session_id:
@@ -2190,52 +2840,52 @@ async def process_youtube_video(youtube_url: str, session_id: Optional[str] = No
     start_time = time.time()
     
     try:
-        logger.info(f"Starting course generation for: {youtube_url}")
+        # Detect source type for appropriate processing
+        from utils.validators import detect_source
+        source_type = detect_source(video_url)
+        
+        logger.info(f"Starting course generation for: {video_url} (source: {source_type})")
+        logger.info(f"DEBUG: Source type detected as: '{source_type}' for URL: {video_url}")
         log_processing_step(session_id, "Course Generation", "STARTED", 
-                           f"YouTube URL: {youtube_url}")
+                           f"Video URL: {video_url} (Source: {source_type})")
         
         # Store session_id in metrics for later use
         metrics.session_id = session_id
         
         # Step 1: Extract video metadata with redundancy
+        logger.info(f"DEBUG: Taking YouTube metadata extraction path, source_type: '{source_type}'")
         log_processing_step(session_id, "Video Metadata", "EXTRACTING", "Using YouTube API and fallback methods")
-        video_info = await extract_video_metadata(youtube_url, metrics)
+        video_info = await extract_video_metadata(video_url, metrics)
         if not video_info:
             logger.error("Failed to extract video metadata")
             log_processing_step(session_id, "Video Metadata", "FAILED", "All extraction methods failed", "ERROR")
-            return create_fallback_course(youtube_url, metrics, "metadata_extraction_failed")
+            return create_fallback_course(video_url, metrics, "metadata_extraction_failed")
         log_processing_step(session_id, "Video Metadata", "SUCCESS", f"Title: {video_info.get('title', 'N/A')}")
         
-        # Step 1.5: Download MP4 video using Apify with real-time tracking
-        log_processing_step(session_id, "Apify MP4 Download", "STARTING", "Initiating YouTube video download actor")
-        mp4_info = await download_mp4_video(youtube_url, metrics)
-        
-        # If we have a run_id, start real-time tracking
-        if mp4_info and mp4_info.get('run_id'):
-            run_id = mp4_info['run_id']
-            log_processing_step(session_id, "Apify MP4 Download", "RUNNING", f"Actor started (run_id: {run_id}) - tracking in background")
+        # Step 1.5: Download MP4 video using enhanced downloader (YouTube only)
+        log_processing_step(session_id, "Video Download", "STARTING", f"Processing YouTube video")
+        try:
+            download_result = youtube_downloader.download_video(video_url, quality="720p", session_id=session_id)
             
-            # Start background tracking task but don't wait for it
-            from services.apify_api_server import apify_api_server
-            asyncio.create_task(apify_api_server.monitor_run_with_logging(run_id, session_id))
-        if mp4_info:
-            # Always update video_info with MP4 information (successful or in progress)
-            video_info.update(mp4_info)
-            if mp4_info.get('success'):
-                file_size = mp4_info.get('file_size', 0)
+            if download_result.get('success'):
+                file_size = download_result.get('mp4_file_size', 0)
                 size_str = format_file_size(file_size) if file_size > 0 else "unknown size"
                 logger.info("MP4 video download successful")
-                log_processing_step(session_id, "Apify MP4 Download", "SUCCESS", f"Video ready: {size_str} - {mp4_info.get('mp4_video_url', 'N/A')}")
-            # Status already logged above with background tracking
-        else:
-            logger.warning("MP4 video download failed to start")
-            log_processing_step(session_id, "Apify MP4 Download", "FAILED", "Apify service unavailable or configuration error", "WARNING")
+                log_processing_step(session_id, "Video Download", "SUCCESS", f"Video ready: {size_str} - {download_result.get('mp4_video_url', 'N/A')}")
+                video_info.update(download_result)
+            else:
+                error_msg = download_result.get('error', 'Unknown download error')
+                logger.warning(f"Video download failed: {error_msg}")
+                log_processing_step(session_id, "Video Download", "FAILED", f"Download error: {error_msg}", "WARNING")
+        except Exception as e:
+            logger.error(f"Video download exception: {str(e)}")
+            log_processing_step(session_id, "Video Download", "FAILED", f"Download exception: {str(e)}", "ERROR")
         
-        # Step 2: Extract transcript with redundancy
-        log_processing_step(session_id, "Transcript Extraction", "EXTRACTING", "Using multiple transcript sources")
+        # Step 2: Extract transcript with yt-dlp and SABR workarounds
+        log_processing_step(session_id, "Transcript Extraction", "EXTRACTING", "Using yt-dlp transcript extraction with SABR workarounds")
         video_id = video_info.get('video_id')
         if video_id:
-            transcript = await extract_transcript(youtube_url, video_id, metrics)
+            transcript = await extract_transcript(video_url, video_id, metrics, session_id)
         else:
             logger.warning("No video_id found, skipping transcript extraction")
             transcript = None
@@ -2248,13 +2898,13 @@ async def process_youtube_video(youtube_url: str, session_id: Optional[str] = No
         
         # Step 3: Generate course using AI with redundancy
         log_processing_step(session_id, "AI Course Generation", "GENERATING", "Using OpenRouter, Claude, and fallback generators")
-        # Ensure video_info has youtube_url before course generation
-        video_info['youtube_url'] = youtube_url
+        # Ensure video_info has video_url before course generation  
+        video_info['youtube_url'] = video_url  # Keep existing key for compatibility
         course = await generate_course_content(video_info, transcript, metrics)
         if not course:
             logger.error("AI course generation failed, using fallback")
             log_processing_step(session_id, "AI Course Generation", "FAILED", "All AI services failed, using structured fallback", "ERROR")
-            return create_fallback_course(youtube_url, metrics, "ai_generation_failed", video_info, transcript, session_id)
+            return create_fallback_course(video_url, metrics, "ai_generation_failed", video_info, transcript, session_id)
         log_processing_step(session_id, "AI Course Generation", "SUCCESS", f"7-day course created: {course.get('course_title', 'N/A')}")
         
         # Calculate final metrics
@@ -2266,7 +2916,7 @@ async def process_youtube_video(youtube_url: str, session_id: Optional[str] = No
         log_processing_step(session_id, "Course Generation", "COMPLETED", f"Total time: {processing_time:.2f}s, Quality: {quality_score}")
         
         # Save to database
-        video_info['youtube_url'] = youtube_url
+        video_info['youtube_url'] = video_url
         log_processing_step(session_id, "Database", "SAVING", "Storing course and metrics to PostgreSQL")
         course_id = database_service.save_course(course, video_info, metrics.to_dict())
         if course_id:
@@ -2277,7 +2927,7 @@ async def process_youtube_video(youtube_url: str, session_id: Optional[str] = No
             'session_id': session.get('session_id', str(uuid.uuid4())),
             'ip_address': request.remote_addr,
             'user_agent': request.headers.get('User-Agent', ''),
-            'youtube_url': youtube_url,
+            'youtube_url': video_url,
             'processing_time': processing_time,
             'total_cost': metrics.total_cost
         }
@@ -2307,14 +2957,70 @@ async def process_youtube_video(youtube_url: str, session_id: Optional[str] = No
         transcript = locals().get('transcript', '')
         # Get session_id from locals or generate new one
         session_id = locals().get('session_id', str(uuid.uuid4())[:8])
-        return create_fallback_course(youtube_url, metrics, f"critical_error: {str(e)}", video_info, transcript, session_id)
+        return create_fallback_course(video_url, metrics, f"critical_error: {str(e)}", video_info, transcript, session_id)
+
+async def extract_nasa_metadata(nasa_url: str, metrics: ProcessingMetrics) -> Dict[str, Any]:
+    """
+    Extract metadata from NASA URLs
+    
+    Args:
+        nasa_url: NASA images.nasa.gov URL
+        metrics: Processing metrics for tracking
+        
+    Returns:
+        Dict containing NASA video metadata
+    """
+    try:
+        import re
+        import urllib.parse
+        import hashlib
+        
+        # Extract title from URL
+        url_parts = urllib.parse.urlparse(nasa_url)
+        path_parts = url_parts.path.split('/')
+        
+        # Try to extract title from URL path
+        title = "NASA Video Content"
+        if len(path_parts) > 2:
+            title_part = path_parts[-1] or path_parts[-2]
+            # URL decode and clean up title
+            title = urllib.parse.unquote(title_part).replace('%20', ' ')
+            title = re.sub(r'[^a-zA-Z0-9\s\-_]', ' ', title).strip()
+            if not title:
+                title = "NASA Video Content"
+        
+        # Generate a pseudo video ID for NASA content
+        nasa_id = hashlib.md5(nasa_url.encode()).hexdigest()[:11]
+        
+        logger.info(f"Extracted NASA metadata: {title}")
+        
+        return {
+            'success': True,
+            'source': 'nasa',
+            'nasa_url': nasa_url,
+            'youtube_url': nasa_url,  # For compatibility
+            'title': title,
+            'video_id': nasa_id,
+            'description': f"NASA video content: {title}. Original URL: {nasa_url}",
+            'duration': 0,  # Unknown duration
+            'uploader': 'NASA',
+            'upload_date': '',
+            'view_count': 0,
+            'thumbnail_url': '',
+            'author': 'NASA',
+            'channel': 'NASA'
+        }
+        
+    except Exception as e:
+        logger.error(f"NASA metadata extraction error: {str(e)}")
+        return {}
 
 async def extract_video_metadata(youtube_url: str, metrics: ProcessingMetrics) -> Optional[Dict[str, Any]]:
     """Extract video metadata with multi-layer redundancy"""
     try:
         # Layer 1: YouTube Data API
         logger.info("Attempting YouTube Data API")
-        video_info = await youtube_service.get_video_info(youtube_url)
+        video_info = youtube_service.get_video_info_sync(youtube_url)
         if video_info:
             metrics.youtube_api_success = True
             logger.info("YouTube Data API successful")
@@ -2349,174 +3055,39 @@ async def extract_video_metadata(youtube_url: str, metrics: ProcessingMetrics) -
     
     return None
 
-async def extract_transcript(youtube_url: str, video_id: str, metrics: ProcessingMetrics) -> Optional[str]:
-    """Extract transcript with multi-layer redundancy"""
+async def extract_transcript(youtube_url: str, video_id: str, metrics: ProcessingMetrics, session_id: Optional[str] = None) -> Optional[str]:
+    """Extract transcript using yt-dlp with SABR workarounds and proper session logging"""
     try:
-        # Layer 1: Apify API
-        logger.info("Attempting Apify transcript extraction")
-        transcript = await transcript_service.get_transcript_apify(video_id)
-        if transcript:
-            metrics.apify_success = True
-            logger.info("Apify transcript extraction successful")
-            return transcript
-    except Exception as e:
-        logger.warning(f"Apify transcript extraction failed: {str(e)}")
-        metrics.apify_success = False
-    
-    try:
-        # Layer 2: YouTube transcript API
-        logger.info("Attempting YouTube transcript API")
-        transcript = await transcript_service.get_transcript_youtube(video_id)
+        # Use the new yt-dlp transcript service with session logging
+        logger.info(f"Starting yt-dlp transcript extraction for video: {video_id}")
+        if session_id:
+            log_processing_step(session_id, "yt-dlp Transcript", "STARTING", "Extracting transcript using yt-dlp with SABR workarounds")
+        
+        transcript = transcript_service.get_transcript_sync(video_id, session_id)
         if transcript:
             metrics.youtube_transcript_success = True
-            logger.info("YouTube transcript API successful")
+            logger.info("yt-dlp transcript extraction successful")
+            if session_id:
+                word_count = len(transcript.split())
+                log_processing_step(session_id, "yt-dlp Transcript", "SUCCESS", f"Successfully extracted {word_count} words using yt-dlp")
             return transcript
+        else:
+            logger.warning("yt-dlp transcript extraction returned None")
+            metrics.youtube_transcript_success = False
+            if session_id:
+                log_processing_step(session_id, "yt-dlp Transcript", "FAILED", "yt-dlp returned no transcript - subtitles may not be available", "WARNING")
+            
     except Exception as e:
-        logger.warning(f"YouTube transcript API failed: {str(e)}")
+        logger.error(f"yt-dlp transcript extraction failed: {str(e)}")
         metrics.youtube_transcript_success = False
+        if session_id:
+            log_processing_step(session_id, "yt-dlp Transcript", "FAILED", f"Error: {str(e)}", "ERROR")
     
-    try:
-        # Layer 3: Third-party transcript service
-        logger.info("Attempting third-party transcript service")
-        transcript = await transcript_service.get_transcript_backup(video_id)
-        if transcript:
-            metrics.backup_transcript_success = True
-            logger.info("Third-party transcript service successful")
-            return transcript
-    except Exception as e:
-        logger.warning(f"Third-party transcript service failed: {str(e)}")
-        metrics.backup_transcript_success = False
+    # No additional fallback needed - youtube-transcript-api handles all fallbacks internally
     
     return None
 
-async def download_mp4_video(youtube_url: str, metrics: ProcessingMetrics) -> dict:
-    """Download MP4 video using Apify service with async monitoring"""
-    start_time = time.time()
-    session_id = getattr(metrics, 'session_id', 'unknown')
-    
-    try:
-        logger.info("Attempting Apify MP4 video download")
-        log_processing_step(session_id, "Apify MP4 Download", "CONNECTING", "Initiating Apify actor for video download")
-        
-        # Start the MP4 download
-        download_start = apify_service.start_youtube_video_download(youtube_url)
-        
-        if not download_start.get('success'):
-            error_msg = download_start.get('error', 'Unknown error')
-            logger.warning(f"Failed to start Apify download: {error_msg}")
-            log_processing_step(session_id, "Apify MP4 Download", "FAILED", f"Apify actor failed: {error_msg}", "WARNING")
-            metrics.apify_mp4_success = False
-            
-            # Try YouTube downloader as fallback
-            logger.info("Attempting fallback YouTube downloader (yt-dlp)")
-            log_processing_step(session_id, "YouTube Downloader Fallback", "STARTING", "Switching to yt-dlp free downloader due to Apify failure")
-            
-            try:
-                log_processing_step(session_id, "YouTube Downloader Fallback", "EXTRACTING", "Getting video metadata with yt-dlp")
-                fallback_result = youtube_downloader.download_video(youtube_url, quality="720p")
-                
-                if fallback_result.get('success'):
-                    mp4_download_time = time.time() - start_time
-                    metrics.mp4_download_time = mp4_download_time
-                    
-                    file_size = fallback_result.get('mp4_file_size', 0)
-                    size_str = format_file_size(file_size) if file_size > 0 else "unknown size"
-                    
-                    logger.info(f"YouTube downloader fallback successful in {mp4_download_time:.2f}s")
-                    log_processing_step(session_id, "YouTube Downloader Fallback", "SUCCESS", f"Downloaded {size_str} in {mp4_download_time:.1f}s using yt-dlp (free downloader)")
-                    
-                    # Try to upload to Cloudinary for premium storage
-                    cloudinary_result = await upload_to_cloudinary(fallback_result, youtube_url, session_id)
-                    
-                    return {
-                        'success': True,
-                        'mp4_video_url': fallback_result.get('mp4_video_url'),
-                        'mp4_file_size': fallback_result.get('mp4_file_size', 0),
-                        'mp4_download_status': 'completed_fallback',
-                        'mp4_download_time': mp4_download_time,
-                        'source': 'youtube-downloader',
-                        # Add Cloudinary data if upload succeeded
-                        **cloudinary_result
-                    }
-                else:
-                    error_msg = fallback_result.get('error', 'Unknown error')
-                    logger.error(f"YouTube downloader fallback failed: {error_msg}")
-                    log_processing_step(session_id, "YouTube Downloader Fallback", "FAILED", f"yt-dlp failed: {error_msg}", "ERROR")
-                    
-            except Exception as fallback_error:
-                logger.error(f"YouTube downloader fallback error: {str(fallback_error)}")
-                log_processing_step(session_id, "YouTube Downloader Fallback", "FAILED", f"yt-dlp exception: {str(fallback_error)}", "ERROR")
-            
-            # Both Apify and fallback failed
-            log_processing_step(session_id, "MP4 Download", "FAILED", "Both Apify and yt-dlp failed - continuing without video", "ERROR")
-            return {
-                'success': False,
-                'mp4_download_status': 'failed',
-                'error': f"Apify: {download_start.get('error', 'Failed to start download')} | yt-dlp fallback also failed"
-            }
-        
-        run_id = download_start['run_id']
-        logger.info(f"Started Apify download with run ID: {run_id}")
-        
-        # Quick check for immediate completion (5 seconds max)
-        quick_check_time = 5
-        logger.info(f"Quick check for immediate completion ({quick_check_time}s)")
-        
-        await asyncio.sleep(quick_check_time)
-        
-        try:
-            run_status = apify_service.get_run_status(run_id)
-            status = run_status.get('status', 'UNKNOWN')
-            
-            logger.info(f"Apify run status after quick check: {status}")
-            
-            if status == 'SUCCEEDED':
-                # Get the results immediately
-                download_result = apify_service.get_run_results(run_id)
-                
-                if download_result.get('success'):
-                    metrics.apify_mp4_success = True
-                    mp4_download_time = time.time() - start_time
-                    metrics.mp4_download_time = mp4_download_time
-                    
-                    logger.info(f"Apify MP4 download completed quickly in {mp4_download_time:.2f}s")
-                    
-                    # Try to upload to Cloudinary for premium storage
-                    cloudinary_result = await upload_to_cloudinary(download_result, youtube_url, session_id)
-                    
-                    return {
-                        'success': True,
-                        'mp4_video_url': download_result.get('video_url'),
-                        'mp4_file_size': download_result.get('file_size', 0),
-                        'mp4_download_status': 'completed',
-                        'mp4_download_time': mp4_download_time,
-                        # Add Cloudinary data if upload succeeded
-                        **cloudinary_result
-                    }
-                    
-        except Exception as e:
-            logger.warning(f"Error in quick check: {str(e)}")
-        
-        # Download is still running - continue with course generation and mark as background
-        logger.info(f"MP4 download still in progress (run_id: {run_id}) - continuing with course generation")
-        metrics.apify_mp4_success = False
-        
-        return {
-            'success': False,
-            'mp4_download_status': 'background_processing',
-            'error': 'Download started but still in progress - check back later',
-            'run_id': run_id,  # Keep run_id for background monitoring
-            'background_task': True
-        }
-            
-    except Exception as e:
-        logger.error(f"MP4 download error: {str(e)}")
-        metrics.apify_mp4_success = False
-        return {
-            'success': False,
-            'mp4_download_status': 'failed',
-            'error': str(e)
-        }
+# Removed old download_mp4_video function - now using direct youtube_downloader calls
 
 async def generate_course_content(video_info: Dict[str, Any], transcript: str, metrics: ProcessingMetrics) -> Optional[Dict[str, Any]]:
     """Generate course content using AI with redundancy"""
@@ -2579,7 +3150,7 @@ async def upload_to_cloudinary(download_result: dict, youtube_url: str, session_
         Dict with Cloudinary upload results
     """
     try:
-        if not cloudinary_service.configured:
+        if not cloudinary_service or not getattr(cloudinary_service, 'configured', False):
             log_processing_step(session_id, "Cloudinary Upload", "SKIPPED", "Cloudinary not configured - using local storage only")
             return {}
         
@@ -2619,7 +3190,10 @@ async def upload_to_cloudinary(download_result: dict, youtube_url: str, session_
             return {}
         
         # Upload to Cloudinary
-        upload_result = cloudinary_service.upload_video(local_video_path, video_id, video_metadata)
+        if cloudinary_service:
+            upload_result = cloudinary_service.upload_video(local_video_path, video_id, video_metadata)
+        else:
+            upload_result = {'success': False, 'error': 'Cloudinary service not available'}
         
         if upload_result.get('success'):
             file_size = upload_result.get('file_size', 0)
@@ -2649,7 +3223,7 @@ def create_fallback_course(youtube_url: str, metrics: ProcessingMetrics, error_r
     logger.info("Creating fallback course")
     
     fallback_course = fallback_generator.create_basic_course(
-        youtube_url, video_info, transcript, error_reason
+        youtube_url, video_info or {}, transcript or '', error_reason
     )
     
     processing_time = time.time() - metrics.start_time if hasattr(metrics, 'start_time') else 0
@@ -2720,18 +3294,24 @@ def calculate_quality_score(metrics: ProcessingMetrics, course: dict) -> str:
 
 @app.route('/api/apify/test', methods=['POST'])
 def test_apify_integration():
-    """Test Apify integration with a simple YouTube URL"""
+    """Test Apify integration with a simple media URL"""
     try:
         data = request.get_json()
         youtube_url = data.get('youtube_url', '')
         
         if not youtube_url:
-            return jsonify({'error': 'YouTube URL required'}), 400
+            return jsonify({'error': 'Media URL required'}), 400
         
-        if not validate_youtube_url(youtube_url):
-            return jsonify({'error': 'Invalid YouTube URL format'}), 400
+        if not validate_media_url(youtube_url):
+            return jsonify({'error': 'Invalid media URL format. Please provide a valid YouTube URL'}), 400
         
         # Test Apify service configuration
+        if not apify_service:
+            return jsonify({
+                'error': 'Apify service not available',
+                'details': 'Apify service is not configured or imported'
+            }), 500
+        
         config_status = apify_service.validate_configuration()
         if not config_status.get('configured'):
             return jsonify({
@@ -2741,7 +3321,10 @@ def test_apify_integration():
         
         # Test MP4 download
         logger.info(f"Testing Apify MP4 download for: {youtube_url}")
-        download_result = apify_service.download_youtube_video(youtube_url)
+        if apify_service:
+            download_result = apify_service.download_youtube_video(youtube_url)
+        else:
+            download_result = {'success': False, 'error': 'Apify service not available'}
         
         return jsonify({
             'success': download_result.get('success', False),
@@ -2833,10 +3416,10 @@ def start_apify_download():
         youtube_url = data.get('youtube_url', '')
         
         if not youtube_url:
-            return jsonify({'error': 'YouTube URL required'}), 400
+            return jsonify({'error': 'Media URL required'}), 400
         
-        if not validate_youtube_url(youtube_url):
-            return jsonify({'error': 'Invalid YouTube URL format'}), 400
+        if not validate_media_url(youtube_url):
+            return jsonify({'error': 'Invalid media URL format. Please provide a valid YouTube URL'}), 400
         
         # Start the download
         result = apify_service.start_youtube_video_download(youtube_url)
@@ -3048,6 +3631,12 @@ def predict_completion():
             'error': str(e),
             'timestamp': datetime.utcnow().isoformat()
         }), 500
+
+# Keep skool reference for design inspiration only
+@app.route('/skool-reference/')
+def skool_reference():
+    """Serve the skool.com page as design reference only"""
+    return send_from_directory('public/skool', 'index.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

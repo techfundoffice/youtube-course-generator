@@ -1,0 +1,116 @@
+ Course Generated Successfully
+Course Generator
+Course Result
+ Course Generated Successfully
+B
+Quality Grade
+28.4s
+Processing Time
+$0.0323
+Total Cost
+23.3%
+Success Rate
+ 7-Day Learning Course: YouTube Video Course
+A structured 7-day course based on the YouTube video 'YouTube Video Course' by Unknown Creator. Learn from this video content
+
+Target Audience: Students and lifelong learners
+Difficulty Level: Beginner to Intermediate
+Estimated Total Time: 8-12 hours
+Number of Days: 7 days
+ MP4 Video Not Available
+The MP4 video download may have failed or is still in progress. The course content is available below.
+
+Debug info: mp4_video_url = "Not set", mp4_download_status = "Not set"
+Processing Output Logs
+  
+Real-time processing logs from course generation:
+2025-07-18T04:20:00 No processing logs available for this session
+ 7-Day Course Structure
+
+ Day 1: Introduction and Overview
+1 hour 12 minutes
+Learning Objectives
+Understand introduction and overview from the video content
+Identify main themes and concepts
+Set personal learning goals
+Key Takeaways
+Key insights about introduction and overview
+Practical skills and knowledge gained
+Areas for continued development
+Daily Activities
+ Watch
+Watch the video content carefully
+
+30-45 minutes
+ Note-Taking
+Take notes on main topics and themes
+
+20 minutes
+ Reflection
+Reflect on your learning goals
+
+15 minutes
+Homework
+Review your notes and identify questions for deeper exploration
+Content Summary
+Focus on introduction and overview related to the video content
+
+
+ Day 2: Core Concepts - Part 1
+1 hour 52 minutes
+
+ Day 3: Core Concepts - Part 2
+1 hour 52 minutes
+
+ Day 4: Practical Applications
+2 hours 7 minutes
+
+ Day 5: Advanced Topics
+2 hours 7 minutes
+
+ Day 6: Integration and Practice
+2 hours 52 minutes
+
+ Day 7: Mastery and Review
+2 hours 52 minutes
+ Final Project
+Create a presentation summarizing key concepts from "YouTube Video Course"
+
+Assessment Criteria:
+Complete daily activities and final project
+
+ Additional Resources
+Original video: https://www.youtube.com/watch?v=DNGPAeX5z40
+Online forums and communities for discussion
+Additional videos on similar topics
+Practice exercises and projects
+Recommended reading materials
+Online tools and resources
+ Processing Details & Reliability Metrics
+Metadata Extraction
+YouTube API:
+✗
+Backup API:
+✗
+Web Scraper:
+✓
+Success Rate:
+33.3%
+Transcript Extraction
+Apify:
+✗
+YouTube Transcript:
+✗
+Backup Service:
+✗
+Success Rate:
+0.0%
+AI Generation
+OpenRouter GPT-4:
+✗
+Claude 3.5:
+✓
+Fallback Generator:
+✗
+Success Rate:
+33.3%

@@ -266,6 +266,59 @@
             </div>
             {% endif %}
 
+            <!-- Transcript Viewer Section -->
+            {% if transcript_data and transcript_data.transcript %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="card-title mb-0">
+                                <i class="fas fa-file-alt me-2"></i>Video Transcript
+                            </h4>
+                            <div>
+                                <button class="btn btn-outline-light btn-sm" id="searchTranscriptBtn">
+                                    <i class="fas fa-search me-1"></i>Search
+                                </button>
+                                <button class="btn btn-outline-light btn-sm" id="copyTranscriptBtn">
+                                    <i class="fas fa-copy me-1"></i>Copy
+                                </button>
+                                <a href="/transcript/{{ course.id }}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-download me-1"></i>Download .txt
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Transcript: {{ transcript_data.transcript_word_count }} words | 
+                                    {{ transcript_data.transcript|length }} characters |
+                                    Extracted using youtube-transcript-api
+                                </small>
+                            </div>
+                            
+                            <!-- Search Input (initially hidden) -->
+                            <div id="transcriptSearchContainer" class="mb-3" style="display: none;">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="transcriptSearchInput" placeholder="Search within transcript...">
+                                    <button class="btn btn-secondary" type="button" id="clearSearchBtn">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="mt-2">
+                                    <small class="text-muted" id="searchResults">Enter search terms to find content within the transcript</small>
+                                </div>
+                            </div>
+                            
+                            <!-- Transcript Content -->
+                            <div id="transcriptContent" class="transcript-viewer" 
+                                 style="background: #1e1e24; color: #e9ecef; font-family: 'SF Mono', 'Monaco', 'Consolas', monospace; font-size: 0.9rem; line-height: 1.6; max-height: 500px; overflow-y: auto; padding: 1.5rem; border-radius: 0.375rem; white-space: pre-wrap; border: 1px solid #495057;">{{ transcript_data.transcript }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Processing Logs Output Window -->
             <div class="row mb-4">
                 <div class="col-12">
@@ -534,6 +587,100 @@
                 </div>
             </div>
             {% endif %}
+
+            <!-- Course Progress Tracker -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary">
+                            <h4 class="card-title mb-0 text-white">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Course Progress Tracker
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <!-- Progress Summary -->
+                            <div class="row mb-4">
+                                <div class="col-md-8">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <h5 class="mb-0 me-3" id="progressText">0/7 days completed - 0%</h5>
+                                        <div class="spinner-border spinner-border-sm text-primary" style="display: none;" id="progressSpinner">
+                                            <span class="visually-hidden">Saving...</span>
+                                        </div>
+                                        <div class="text-success ms-2" style="display: none;" id="progressSaved">
+                                            <i class="fas fa-check-circle me-1"></i>Saved
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Progress Bar -->
+                                    <div class="progress mb-3" style="height: 12px;">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+                                             role="progressbar" 
+                                             style="width: 0%;" 
+                                             id="progressBar"
+                                             aria-valuenow="0" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                    
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Check off days as you complete them. Your progress is automatically saved.
+                                    </small>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <div class="progress-badge">
+                                        <div class="badge-icon text-primary mb-2">
+                                            <i class="fas fa-trophy" style="font-size: 2.5rem;"></i>
+                                        </div>
+                                        <div class="badge bg-light text-dark" id="completionBadge">
+                                            <i class="fas fa-play me-1"></i>Just Started
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Daily Progress Checkboxes -->
+                            <div class="row">
+                                {% for day in course.days %}
+                                <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                                    <div class="form-check progress-day-item">
+                                        <input class="form-check-input progress-checkbox" 
+                                               type="checkbox" 
+                                               id="day{{ day.day }}" 
+                                               data-day="{{ day.day }}"
+                                               style="transform: scale(1.2);">
+                                        <label class="form-check-label ms-2" for="day{{ day.day }}">
+                                            <div class="d-flex align-items-center">
+                                                <div class="day-number me-2">
+                                                    <span class="badge bg-secondary">{{ day.day }}</span>
+                                                </div>
+                                                <div class="day-content">
+                                                    <div class="fw-bold">{{ day.title }}</div>
+                                                    <small class="text-muted">{{ day.estimated_time }}</small>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <!-- Completion Celebration (initially hidden) -->
+                            <div class="alert alert-success text-center" style="display: none;" id="completionCelebration">
+                                <div class="mb-2">
+                                    <i class="fas fa-star text-warning" style="font-size: 1.5rem;"></i>
+                                    <i class="fas fa-trophy text-warning mx-2" style="font-size: 2rem;"></i>
+                                    <i class="fas fa-star text-warning" style="font-size: 1.5rem;"></i>
+                                </div>
+                                <h5 class="mb-2">🎉 Congratulations! Course Completed! 🎉</h5>
+                                <p class="mb-0">You've successfully completed all 7 days of this course. Well done!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Daily Course Structure - All Sections Expanded -->
             <div class="row mb-4">
@@ -1467,6 +1614,394 @@
         if (autoScroll && logOutput) {
             logOutput.scrollTop = logOutput.scrollHeight;
         }
+    </script>
+
+    <!-- Transcript Search and Copy Functionality -->
+    <script>
+        // Transcript Search Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchBtn = document.getElementById('searchTranscriptBtn');
+            const searchContainer = document.getElementById('transcriptSearchContainer');
+            const searchInput = document.getElementById('transcriptSearchInput');
+            const clearSearchBtn = document.getElementById('clearSearchBtn');
+            const searchResults = document.getElementById('searchResults');
+            const transcriptContent = document.getElementById('transcriptContent');
+            const copyBtn = document.getElementById('copyTranscriptBtn');
+            
+            let originalTranscript = '';
+            if (transcriptContent) {
+                originalTranscript = transcriptContent.textContent;
+            }
+            
+            // Toggle search container
+            if (searchBtn) {
+                searchBtn.addEventListener('click', function() {
+                    if (searchContainer.style.display === 'none') {
+                        searchContainer.style.display = 'block';
+                        searchInput.focus();
+                    } else {
+                        searchContainer.style.display = 'none';
+                        clearSearch();
+                    }
+                });
+            }
+            
+            // Search functionality
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.trim().toLowerCase();
+                    if (searchTerm.length === 0) {
+                        clearSearch();
+                        return;
+                    }
+                    
+                    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                    const matches = originalTranscript.match(regex);
+                    const matchCount = matches ? matches.length : 0;
+                    
+                    if (matchCount > 0) {
+                        const highlightedText = originalTranscript.replace(regex, '<mark style="background-color: #ffc107; color: #000; padding: 0.1em 0.2em;">$1</mark>');
+                        transcriptContent.innerHTML = highlightedText;
+                        searchResults.innerHTML = `<i class="fas fa-search me-1"></i>Found ${matchCount} match${matchCount !== 1 ? 'es' : ''} for "${searchTerm}"`;
+                        searchResults.className = 'text-success';
+                    } else {
+                        transcriptContent.innerHTML = originalTranscript;
+                        searchResults.innerHTML = `<i class="fas fa-search me-1"></i>No matches found for "${searchTerm}"`;
+                        searchResults.className = 'text-warning';
+                    }
+                });
+            }
+            
+            // Clear search
+            function clearSearch() {
+                if (searchInput) searchInput.value = '';
+                if (transcriptContent) transcriptContent.innerHTML = originalTranscript;
+                if (searchResults) {
+                    searchResults.innerHTML = 'Enter search terms to find content within the transcript';
+                    searchResults.className = 'text-muted';
+                }
+            }
+            
+            if (clearSearchBtn) {
+                clearSearchBtn.addEventListener('click', clearSearch);
+            }
+            
+            // Copy transcript to clipboard
+            if (copyBtn) {
+                copyBtn.addEventListener('click', async function() {
+                    try {
+                        await navigator.clipboard.writeText(originalTranscript);
+                        this.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+                        this.className = 'btn btn-outline-success btn-sm';
+                        
+                        setTimeout(() => {
+                            this.innerHTML = '<i class="fas fa-copy me-1"></i>Copy';
+                            this.className = 'btn btn-outline-light btn-sm';
+                        }, 2000);
+                    } catch (err) {
+                        console.error('Failed to copy text: ', err);
+                        this.innerHTML = '<i class="fas fa-times me-1"></i>Failed';
+                        this.className = 'btn btn-outline-danger btn-sm';
+                        
+                        setTimeout(() => {
+                            this.innerHTML = '<i class="fas fa-copy me-1"></i>Copy';
+                            this.className = 'btn btn-outline-light btn-sm';
+                        }, 2000);
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- Course Progress Tracker JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Progress tracker elements
+            const progressText = document.getElementById('progressText');
+            const progressBar = document.getElementById('progressBar');
+            const progressSpinner = document.getElementById('progressSpinner');
+            const progressSaved = document.getElementById('progressSaved');
+            const completionBadge = document.getElementById('completionBadge');
+            const completionCelebration = document.getElementById('completionCelebration');
+            const progressCheckboxes = document.querySelectorAll('.progress-checkbox');
+            
+            // Course ID from URL or page context
+            const courseId = {{ course.id }};
+            let currentProgress = {};
+            
+            // Initialize progress tracker
+            loadProgress();
+            
+            // Load progress data from server
+            function loadProgress() {
+                fetch(`/api/progress/${courseId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            currentProgress = data.progress;
+                            updateProgressDisplay(data);
+                            setCheckboxStates(data.progress);
+                        } else {
+                            console.error('Failed to load progress:', data.error);
+                            // Initialize with empty progress
+                            currentProgress = {
+                                day_1: false, day_2: false, day_3: false, day_4: false,
+                                day_5: false, day_6: false, day_7: false
+                            };
+                            updateProgressDisplay({
+                                progress: currentProgress,
+                                completion_percentage: 0,
+                                days_completed: 0
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading progress:', error);
+                        // Initialize with empty progress on error
+                        currentProgress = {
+                            day_1: false, day_2: false, day_3: false, day_4: false,
+                            day_5: false, day_6: false, day_7: false
+                        };
+                        updateProgressDisplay({
+                            progress: currentProgress,
+                            completion_percentage: 0,
+                            days_completed: 0
+                        });
+                    });
+            }
+            
+            // Set checkbox states based on progress data
+            function setCheckboxStates(progress) {
+                progressCheckboxes.forEach(checkbox => {
+                    const dayKey = `day_${checkbox.dataset.day}`;
+                    checkbox.checked = progress[dayKey] || false;
+                    
+                    // Add smooth transition effect
+                    checkbox.style.transition = 'all 0.3s ease';
+                });
+            }
+            
+            // Update progress display elements
+            function updateProgressDisplay(data) {
+                const percentage = Math.round(data.completion_percentage || 0);
+                const completed = data.days_completed || 0;
+                
+                // Update text
+                if (progressText) {
+                    progressText.textContent = `${completed}/7 days completed - ${percentage}%`;
+                }
+                
+                // Update progress bar with animation
+                if (progressBar) {
+                    progressBar.style.transition = 'width 0.5s ease-in-out';
+                    progressBar.style.width = `${percentage}%`;
+                    progressBar.setAttribute('aria-valuenow', percentage);
+                    
+                    // Update progress bar color based on completion
+                    progressBar.className = 'progress-bar progress-bar-striped';
+                    if (percentage === 100) {
+                        progressBar.classList.add('bg-success');
+                        progressBar.classList.add('progress-bar-animated');
+                    } else if (percentage >= 50) {
+                        progressBar.classList.add('bg-primary');
+                        progressBar.classList.add('progress-bar-animated');
+                    } else {
+                        progressBar.classList.add('bg-info');
+                        if (percentage > 0) {
+                            progressBar.classList.add('progress-bar-animated');
+                        }
+                    }
+                }
+                
+                // Update completion badge
+                if (completionBadge) {
+                    updateCompletionBadge(completed, percentage);
+                }
+                
+                // Show completion celebration if fully completed
+                if (percentage === 100 && completionCelebration) {
+                    showCompletionCelebration();
+                }
+            }
+            
+            // Update completion badge based on progress
+            function updateCompletionBadge(completed, percentage) {
+                let badgeText, badgeClass, iconClass;
+                
+                if (completed === 0) {
+                    badgeText = 'Just Started';
+                    badgeClass = 'bg-light text-dark';
+                    iconClass = 'fas fa-play';
+                } else if (completed < 3) {
+                    badgeText = 'Getting Started';
+                    badgeClass = 'bg-info text-white';
+                    iconClass = 'fas fa-rocket';
+                } else if (completed < 5) {
+                    badgeText = 'Making Progress';
+                    badgeClass = 'bg-primary text-white';
+                    iconClass = 'fas fa-chart-line';
+                } else if (completed < 7) {
+                    badgeText = 'Almost There!';
+                    badgeClass = 'bg-warning text-dark';
+                    iconClass = 'fas fa-fire';
+                } else {
+                    badgeText = 'Completed!';
+                    badgeClass = 'bg-success text-white';
+                    iconClass = 'fas fa-trophy';
+                }
+                
+                completionBadge.className = `badge ${badgeClass}`;
+                completionBadge.innerHTML = `<i class="${iconClass} me-1"></i>${badgeText}`;
+            }
+            
+            // Show completion celebration
+            function showCompletionCelebration() {
+                if (completionCelebration) {
+                    completionCelebration.style.display = 'block';
+                    completionCelebration.style.opacity = '0';
+                    completionCelebration.style.transform = 'scale(0.8)';
+                    completionCelebration.style.transition = 'all 0.5s ease-in-out';
+                    
+                    setTimeout(() => {
+                        completionCelebration.style.opacity = '1';
+                        completionCelebration.style.transform = 'scale(1)';
+                    }, 100);
+                    
+                    // Add confetti-like animation to stars
+                    const stars = completionCelebration.querySelectorAll('.fas.fa-star');
+                    stars.forEach((star, index) => {
+                        setTimeout(() => {
+                            star.style.animation = 'pulse 1s ease-in-out infinite alternate';
+                        }, index * 200);
+                    });
+                }
+            }
+            
+            // Show progress saved feedback
+            function showProgressSaved() {
+                if (progressSpinner) progressSpinner.style.display = 'none';
+                if (progressSaved) {
+                    progressSaved.style.display = 'inline-block';
+                    progressSaved.style.opacity = '0';
+                    progressSaved.style.transition = 'opacity 0.3s ease';
+                    
+                    setTimeout(() => {
+                        progressSaved.style.opacity = '1';
+                    }, 50);
+                    
+                    setTimeout(() => {
+                        progressSaved.style.opacity = '0';
+                        setTimeout(() => {
+                            progressSaved.style.display = 'none';
+                        }, 300);
+                    }, 2000);
+                }
+            }
+            
+            // Show saving spinner
+            function showSavingSpinner() {
+                if (progressSaved) progressSaved.style.display = 'none';
+                if (progressSpinner) progressSpinner.style.display = 'inline-block';
+            }
+            
+            // Save progress to server
+            function saveProgress(updatedProgress) {
+                showSavingSpinner();
+                
+                fetch(`/api/progress/${courseId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        progress: updatedProgress
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentProgress = data.progress;
+                        updateProgressDisplay(data);
+                        showProgressSaved();
+                    } else {
+                        console.error('Failed to save progress:', data.error);
+                        showProgressSaved(); // Still show feedback even on error
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving progress:', error);
+                    showProgressSaved(); // Still show feedback even on error
+                });
+            }
+            
+            // Handle checkbox changes
+            progressCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const dayKey = `day_${this.dataset.day}`;
+                    const newProgress = { ...currentProgress };
+                    newProgress[dayKey] = this.checked;
+                    
+                    // Add visual feedback to checkbox
+                    this.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1.2)';
+                    }, 150);
+                    
+                    saveProgress(newProgress);
+                });
+            });
+            
+            // Add hover effects to progress items
+            const progressDayItems = document.querySelectorAll('.progress-day-item');
+            progressDayItems.forEach(item => {
+                item.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.transition = 'transform 0.2s ease';
+                });
+                
+                item.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+        
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                100% { transform: scale(1.1); }
+            }
+            
+            .progress-day-item {
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                border-radius: 8px;
+                padding: 8px;
+            }
+            
+            .progress-day-item:hover {
+                box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+            }
+            
+            .progress-checkbox {
+                cursor: pointer;
+            }
+            
+            .progress-checkbox:checked {
+                transform: scale(1.2);
+            }
+            
+            @media (max-width: 768px) {
+                .progress-day-item {
+                    margin-bottom: 10px;
+                }
+                
+                .badge-icon {
+                    font-size: 2rem !important;
+                }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 
     <!-- Video.js JavaScript for better video player -->

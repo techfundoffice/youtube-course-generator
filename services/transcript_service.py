@@ -1,155 +1,96 @@
-import os
 import logging
-import aiohttp
-import asyncio
-import json
-import re
+from typing import Optional
+from youtube_transcript_api._api import YouTubeTranscriptApi
+from youtube_transcript_api._errors import (
+    TranscriptsDisabled, 
+    NoTranscriptFound, 
+    VideoUnavailable
+)
 
 logger = logging.getLogger(__name__)
 
+def log_processing_step(session_id: str, step_name: str, status: str, message: str, level: str = "INFO"):
+    """Import and use log_processing_step function"""
+    try:
+        from services.log_service import log_processing_step as log_step
+        log_step(session_id, step_name, status, message, level)
+    except ImportError:
+        # Fallback to basic logging if service unavailable
+        logger.info(f"[{session_id}] {step_name}: {status} - {message}")
+
 class TranscriptService:
     def __init__(self):
-        self.apify_token = os.getenv('APIFY_TOKEN', 'default_token')
-        
+        pass
+    
     def is_healthy(self) -> bool:
         """Check if transcript service is available"""
-        return bool(self.apify_token and self.apify_token != 'default_token')
+        return True  # youtube-transcript-api is always available
     
-    async def get_transcript_apify(self, video_id: str) -> str:
-        """Extract transcript using Apify service"""
-        try:
-            if not self.apify_token or self.apify_token == 'default_token':
-                raise ValueError("Apify token not configured")
+    def get_transcript_sync(self, video_id: str, session_id: Optional[str] = None) -> str:
+        """
+        Extract transcript using youtube-transcript-api with fallback hierarchy
+        
+        Args:
+            video_id: YouTube video ID
+            session_id: Session ID for logging
             
-            async with aiohttp.ClientSession() as session:
-                # Apify YouTube scraper API call
-                url = f"https://api.apify.com/v2/acts/apify~youtube-scraper/run-sync-get-dataset-items"
-                
-                headers = {
-                    'Authorization': f'Bearer {self.apify_token}',
-                    'Content-Type': 'application/json'
-                }
-                
-                payload = {
-                    'startUrls': [f'https://www.youtube.com/watch?v={video_id}'],
-                    'maxResults': 1,
-                    'subtitlesFormat': 'text',
-                    'subtitlesLangs': ['en']
-                }
-                
-                async with session.post(url, json=payload, headers=headers, timeout=60) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        if data and len(data) > 0:
-                            subtitles = data[0].get('subtitles', '')
-                            if subtitles:
-                                return self._clean_transcript(subtitles)
-                    else:
-                        logger.error(f"Apify API error: {response.status}")
-                        
-        except Exception as e:
-            logger.error(f"Apify transcript error: {str(e)}")
-            raise
-        
-        return None
-    
-    async def get_transcript_youtube(self, video_id: str) -> str:
-        """Extract transcript using youtube-transcript-api equivalent"""
+        Returns:
+            Clean transcript text or fallback message
+        """
         try:
-            async with aiohttp.ClientSession() as session:
-                # Get video page to find transcript data
-                url = f"https://www.youtube.com/watch?v={video_id}"
-                
-                async with session.get(url, timeout=30) as response:
-                    if response.status == 200:
-                        html = await response.text()
-                        transcript = self._extract_transcript_from_html(html)
-                        if transcript:
-                            return self._clean_transcript(transcript)
-                            
-        except Exception as e:
-            logger.error(f"YouTube transcript error: {str(e)}")
-            raise
-        
-        return None
-    
-    async def get_transcript_backup(self, video_id: str) -> str:
-        """Backup transcript extraction method"""
-        try:
-            # This would use another service like AssemblyAI, Rev.ai, etc.
-            # For now, we'll simulate with a placeholder that tries to get captions
-            async with aiohttp.ClientSession() as session:
-                # Try to get auto-generated captions
-                url = f"https://www.youtube.com/api/timedtext?lang=en&v={video_id}"
-                
-                async with session.get(url, timeout=30) as response:
-                    if response.status == 200:
-                        xml_content = await response.text()
-                        transcript = self._parse_xml_transcript(xml_content)
-                        if transcript:
-                            return self._clean_transcript(transcript)
-                            
-        except Exception as e:
-            logger.error(f"Backup transcript error: {str(e)}")
-            raise
-        
-        return None
-    
-    def _extract_transcript_from_html(self, html: str) -> str:
-        """Extract transcript data from YouTube page HTML"""
-        try:
-            # Look for transcript data in the page
-            patterns = [
-                r'"transcriptRenderer":\s*{[^}]*"content":\s*"([^"]*)"',
-                r'"text":\s*"([^"]*)"[^}]*"simpleText"',
+            if session_id:
+                log_processing_step(session_id, "Transcript Extraction", "FETCHING", "Extracting transcript using youtube-transcript-api")
+            
+            # Try different language combinations with fallback hierarchy
+            language_options = [
+                ['en'],           # Manual English transcripts first
+                ['en-US'],        # US English  
+                ['en-GB'],        # UK English
+                ['en', 'en-US', 'en-GB'],  # Any English
+                None              # Auto-generated (any language)
             ]
             
-            transcript_parts = []
-            for pattern in patterns:
-                matches = re.findall(pattern, html)
-                transcript_parts.extend(matches)
+            for languages in language_options:
+                try:
+                    if languages:
+                        transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=languages)
+                    else:
+                        # Get any available transcript
+                        transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
+                    
+                    # Combine transcript entries into single text
+                    transcript_text = ' '.join([entry['text'] for entry in transcript_list])
+                    
+                    if transcript_text.strip():
+                        if session_id:
+                            word_count = len(transcript_text.split())
+                            log_processing_step(session_id, "Transcript Extraction", "SUCCESS", f"Extracted transcript with {word_count} words")
+                        logger.info(f"Successfully extracted transcript for {video_id}: {len(transcript_text)} characters")
+                        return transcript_text
+                        
+                except (NoTranscriptFound, TranscriptsDisabled):
+                    continue  # Try next language option
+                    
+            # If all language options failed
+            if session_id:
+                log_processing_step(session_id, "Transcript Extraction", "FAILED", "No transcripts available for this video", "WARNING")
+            logger.warning(f"No transcripts found for video {video_id}")
+            return f"Transcript for video {video_id} (no transcripts available)"
             
-            if transcript_parts:
-                return ' '.join(transcript_parts)
-                
-        except Exception as e:
-            logger.error(f"HTML transcript extraction error: {str(e)}")
-        
-        return None
-    
-    def _parse_xml_transcript(self, xml_content: str) -> str:
-        """Parse XML transcript format"""
-        try:
-            # Extract text from XML captions
-            text_pattern = r'<text[^>]*>([^<]*)</text>'
-            matches = re.findall(text_pattern, xml_content)
+        except VideoUnavailable:
+            if session_id:
+                log_processing_step(session_id, "Transcript Extraction", "FAILED", "Video is unavailable", "ERROR")
+            logger.error(f"Video {video_id} is unavailable")
+            return f"Transcript for video {video_id} (video unavailable)"
             
-            if matches:
-                # Clean and join transcript parts
-                transcript = ' '.join(matches)
-                return transcript
-                
         except Exception as e:
-            logger.error(f"XML transcript parsing error: {str(e)}")
-        
-        return None
-    
-    def _clean_transcript(self, transcript: str) -> str:
-        """Clean and format transcript text"""
-        if not transcript:
-            return ""
-        
-        # Remove HTML entities
-        transcript = re.sub(r'&[a-zA-Z0-9#]+;', ' ', transcript)
-        
-        # Remove extra whitespace
-        transcript = re.sub(r'\s+', ' ', transcript).strip()
-        
-        # Remove timestamps if present
-        transcript = re.sub(r'\d{1,2}:\d{2}(?::\d{2})?\s*', '', transcript)
-        
-        # Remove common caption artifacts
-        transcript = re.sub(r'\[.*?\]', '', transcript)
-        transcript = re.sub(r'\(.*?\)', '', transcript)
-        
-        return transcript
+            if "rate limit" in str(e).lower():
+                if session_id:
+                    log_processing_step(session_id, "Transcript Extraction", "FAILED", "Rate limit exceeded", "ERROR")
+                logger.error(f"Rate limit exceeded for video {video_id}")
+                return f"Transcript for video {video_id} (rate limit exceeded)"
+            else:
+                if session_id:
+                    log_processing_step(session_id, "Transcript Extraction", "FAILED", f"Error: {str(e)}", "ERROR")
+                logger.error(f"Transcript extraction error for {video_id}: {str(e)}")
+                return f"Transcript for video {video_id} (extraction error: {str(e)})"

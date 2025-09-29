@@ -1,0 +1,288 @@
+Course Generator
+
+Course Generator
+Generated Courses
+Test Dashboard
+API Stats
+New Course
+ Course Generated Successfully
+Course Generator
+Course Result
+ Course Generated Successfully
+C
+Quality Grade
+23.7s
+Processing Time
+$0.0000
+Total Cost
+23.3%
+Success Rate
+ 7-Day Learning Course: Best Cat Videos of the Decade
+A comprehensive 7-day course based on 'Best Cat Videos of the Decade' by Daily Dose Of Internet
+
+Target Audience: General learners
+Difficulty Level: Beginner
+Estimated Total Time: 8-12 hours
+Number of Days: 7 days
+ MP4 Video Not Available
+The MP4 video download may have failed or is still in progress. The course content is available below.
+
+Debug info: mp4_video_url = "Not set", mp4_download_status = "failed"
+Processing Output Logs
+  
+2025-09-14T18:59:13  Course Generation: STARTED - YouTube URL: https://youtu.be/paWE-GvDO1c
+2025-09-14T18:59:13  Video Metadata: EXTRACTING - Using YouTube API and fallback methods
+2025-09-14T18:59:13  Video Metadata: SUCCESS - Title: Best Cat Videos of the Decade
+2025-09-14T18:59:13  Apify MP4 Download: STARTING - Initiating YouTube video download actor
+2025-09-14T18:59:13  Apify MP4 Download: CONNECTING - Initiating Apify actor for video download
+2025-09-14T18:59:13  Apify MP4 Download: FAILED - Apify actor failed: You must rent a paid Actor in order to run it after its free trial has expired. To rent this Actor, go to https://console.apify.com/actors/xgXvf2RWYmPm769kB
+2025-09-14T18:59:13  YouTube Downloader Fallback: STARTING - Switching to yt-dlp free downloader due to Apify failure
+2025-09-14T18:59:13  YouTube Downloader Fallback: EXTRACTING - Getting video metadata with yt-dlp
+2025-09-14T18:59:25  YouTube Downloader Fallback: FAILED - yt-dlp failed: name 'cloudinary_result' is not defined
+2025-09-14T18:59:25  MP4 Download: FAILED - Both Apify and yt-dlp failed - continuing without video
+2025-09-14T18:59:25  Transcript Extraction: EXTRACTING - Using multiple transcript sources
+2025-09-14T18:59:26  Transcript Extraction: FALLBACK - Using video description as transcript
+2025-09-14T18:59:26  AI Course Generation: GENERATING - Using OpenRouter, Claude, and fallback generators
+2025-09-14T18:59:37  AI Course Generation: SUCCESS - 7-day course created: 7-Day Learning Course: Best Cat Videos of the Decade
+2025-09-14T18:59:37  Course Generation: COMPLETED - Total time: 23.67s, Quality: C
+2025-09-14T18:59:37  Database: SAVING - Storing course and metrics to PostgreSQL
+2025-09-14T18:59:39  Database: SUCCESS - Course saved with ID: None
+ 7-Day Course Structure
+ Day 1: Introduction and Overview
+1 hour 12 minutes
+Learning Objectives
+Understand the main concepts presented in the video
+Identify key themes: general knowledge
+Establish learning goals for the week
+Key Takeaways
+Key insights about introduction and overview
+Practical skills developed
+Areas for continued improvement
+Daily Activities
+ Watch
+Watch and analyze the video content
+
+30-45 minutes
+ Note-Taking
+Take detailed notes on key concepts
+
+20 minutes
+ Reflection
+Reflect on learning and write insights
+
+15 minutes
+Homework Assignment
+ Review today's concepts and practice one technique related to introduction and overview
+Content Summary
+Focus on introduction and overview related to the video content
+
+ Day 2: Core Concepts Part 1
+1 hour 52 minutes
+Learning Objectives
+Master fundamental principles
+Practice basic techniques
+Build foundational understanding
+Key Takeaways
+Key insights about core concepts part 1
+Practical skills developed
+Areas for continued improvement
+Daily Activities
+ Watch
+Watch and analyze the video content
+
+30-45 minutes
+ Practice
+Practice the techniques shown in the video
+
+45 minutes
+ Discussion
+Discuss concepts with peers or research online
+
+30 minutes
+Homework Assignment
+ Review today's concepts and practice one technique related to core concepts part 1
+Content Summary
+Focus on core concepts part 1 related to the video content
+
+ Day 3: Core Concepts Part 2
+2 hours 2 minutes
+Learning Objectives
+Master fundamental principles
+Practice basic techniques
+Build foundational understanding
+Key Takeaways
+Key insights about core concepts part 2
+Practical skills developed
+Areas for continued improvement
+Daily Activities
+ Watch
+Watch and analyze the video content
+
+30-45 minutes
+ Hands-On
+Complete hands-on exercises
+
+60 minutes
+ Review
+Review previous concepts and consolidate learning
+
+25 minutes
+Homework Assignment
+ Review today's concepts and practice one technique related to core concepts part 2
+Content Summary
+Focus on core concepts part 2 related to the video content
+
+ Day 4: Practical Application
+2 hours 15 minutes
+Learning Objectives
+Apply concepts in real-world scenarios
+Develop practical skills
+Gain hands-on experience
+Key Takeaways
+Key insights about practical application
+Practical skills developed
+Areas for continued improvement
+Daily Activities
+ Practice
+Practice the techniques shown in the video
+
+45 minutes
+ Experiment
+Experiment with different approaches
+
+60 minutes
+ Document
+Document your progress and learnings
+
+30 minutes
+Homework Assignment
+ Review today's concepts and practice one technique related to practical application
+Content Summary
+Focus on practical application related to the video content
+
+ Day 5: Advanced Techniques
+2 hours 37 minutes
+Learning Objectives
+Explore advanced techniques
+Solve complex problems
+Push beyond basic understanding
+Key Takeaways
+Key insights about advanced techniques
+Practical skills developed
+Areas for continued improvement
+Daily Activities
+ Watch
+Watch and analyze the video content
+
+30-45 minutes
+ Advanced-Practice
+Apply advanced techniques and variations
+
+75 minutes
+ Problem-Solving
+Solve challenges related to the content
+
+45 minutes
+Homework Assignment
+ Review today's concepts and practice one technique related to advanced techniques
+Content Summary
+Focus on advanced techniques related to the video content
+
+ Day 6: Integration and Synthesis
+2 hours 20 minutes
+Learning Objectives
+Synthesize all learned concepts
+Create comprehensive understanding
+Prepare for final application
+Key Takeaways
+Key insights about integration and synthesis
+Practical skills developed
+Areas for continued improvement
+Daily Activities
+ Project-Work
+Work on your final project
+
+90 minutes
+ Review
+Review previous concepts and consolidate learning
+
+25 minutes
+ Planning
+Plan application of learned concepts
+
+25 minutes
+Homework Assignment
+ Review today's concepts and practice one technique related to integration and synthesis
+Content Summary
+Focus on integration and synthesis related to the video content
+
+ Day 7: Mastery and Next Steps
+2 hours 35 minutes
+Learning Objectives
+Demonstrate mastery of concepts
+Complete capstone project
+Plan future learning path
+Key Takeaways
+Key insights about mastery and next steps
+Practical skills developed
+Areas for continued improvement
+Daily Activities
+ Final-Project
+Complete and finalize your project
+
+120 minutes
+ Reflection
+Reflect on learning and write insights
+
+15 minutes
+ Goal-Setting
+Set goals for continued learning
+
+20 minutes
+Homework Assignment
+ Review today's concepts and practice one technique related to mastery and next steps
+Content Summary
+Focus on mastery and next steps related to the video content
+
+ Final Project
+Apply the concepts to a real-world scenario
+
+Assessment Criteria:
+Progress through daily activities and completion of final project
+
+ Additional Resources
+Original video: Best Cat Videos of the Decade
+Creator: Daily Dose Of Internet
+Online community forums for discussion
+Additional tutorials on similar topics
+Practice exercises and challenges
+Recommended books and articles
+ Processing Details & Reliability Metrics
+Metadata Extraction
+YouTube API:
+✗
+Backup API:
+✓
+Web Scraper:
+✗
+Success Rate:
+33.3%
+Transcript Extraction
+Apify:
+✗
+YouTube Transcript:
+✗
+Backup Service:
+✗
+Success Rate:
+0.0%
+AI Generation
+OpenRouter GPT-4:
+✗
+Claude 3.5:
+✗
+Fallback Generator:
+✓
+Success Rate:
+33.3%
+ Generated with enterprise-grade reliability

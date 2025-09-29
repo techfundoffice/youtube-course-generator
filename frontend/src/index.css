@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light theme - Premium design system */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 220 100% 60%; /* Premium blue */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14.3% 95.9%;
+    --secondary-foreground: 220 8.9% 46.1%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
+    --accent: 220 14.3% 95.9%;
+    --accent-foreground: 220 8.9% 46.1%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 220 100% 60%;
+    --radius: 0.75rem; /* More modern radius */
+    --success: 142 76% 36%;
+    --warning: 38 92% 50%;
+  }
+
+  .dark {
+    /* Dark theme - Enhanced contrast */
+    --background: 220 13% 5%;
+    --foreground: 220 20% 98%;
+    --card: 220 13% 7%;
+    --card-foreground: 220 20% 98%;
+    --popover: 220 13% 7%;
+    --popover-foreground: 220 20% 98%;
+    --primary: 220 100% 65%; /* Brighter blue for dark */
+    --primary-foreground: 220 13% 5%;
+    --secondary: 220 7% 15%;
+    --secondary-foreground: 220 20% 80%;
+    --muted: 220 7% 15%;
+    --muted-foreground: 220 10% 60%;
+    --accent: 220 7% 15%;
+    --accent-foreground: 220 20% 80%;
+    --destructive: 0 75% 65%;
+    --destructive-foreground: 220 13% 5%;
+    --border: 220 7% 20%;
+    --input: 220 7% 20%;
+    --ring: 220 100% 65%;
+    --success: 142 76% 45%;
+    --warning: 38 92% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  h1 {
+    @apply text-4xl font-bold leading-tight tracking-tight;
+  }
+  
+  h2 {
+    @apply text-3xl font-semibold leading-tight tracking-tight;
+  }
+  
+  h3 {
+    @apply text-2xl font-medium leading-snug;
+  }
+  
+  h4 {
+    @apply text-xl font-medium;
+  }
+  
+  p {
+    @apply text-base leading-relaxed;
+  }
+  
+  .text-caption {
+    @apply text-sm leading-relaxed text-muted-foreground;
+  }
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* Processing logs animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.log-entry {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Progress bar animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.progress-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

@@ -1,0 +1,2252 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Dashboard - YouTube Course Generator</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .test-sidebar {
+            background: #1a1a1a;
+            border-right: 1px solid #333;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .test-file-item {
+            padding: 8px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #333;
+            transition: background 0.2s;
+        }
+        .test-file-item:hover {
+            background: #2a2a2a;
+        }
+        .test-file-item.active {
+            background: #007bff;
+        }
+        .test-output {
+            background: #0d1117;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .test-running {
+            color: #ffc107;
+        }
+        .test-passed {
+            color: #28a745;
+        }
+        .test-failed {
+            color: #dc3545;
+        }
+        .coverage-bar {
+            height: 20px;
+            background: #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .coverage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #dc3545 0%, #ffc107 50%, #28a745 100%);
+            transition: width 0.3s;
+        }
+        
+        /* Endpoint Status Styling */
+        .endpoint-status-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .endpoint-category {
+            border-left: 3px solid var(--bs-border-color);
+            padding-left: 8px;
+        }
+        .endpoint-item {
+            font-size: 11px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: background 0.2s;
+        }
+        .endpoint-item:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .endpoint-item code {
+            background: rgba(255,255,255,0.1);
+            color: #e9ecef;
+            border-radius: 3px;
+            padding: 2px 4px;
+        }
+        .test-category-header {
+            border-bottom: 1px solid rgba(108, 117, 125, 0.2);
+            padding-bottom: 4px;
+        }
+        .test-file-item[data-category="unit"] {
+            border-left: 3px solid #198754;
+        }
+        .test-file-item[data-category="integration"] {
+            border-left: 3px solid #fd7e14;
+        }
+        .test-file-item[data-category="functional"] {
+            border-left: 3px solid #6f42c1;
+        }
+        .test-file-item[data-category="legacy"] {
+            border-left: 3px solid #6c757d;
+        }
+        
+        /* AI Chat Styling */
+        .typing-dots span {
+            animation: typing 1.4s infinite;
+            animation-delay: 0s;
+        }
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60% { opacity: 0.3; }
+            30% { opacity: 1; }
+        }
+        
+        #chatMessages {
+            background: linear-gradient(145deg, #1a1d23, #0d1117);
+        }
+        
+        #chatMessages .bg-primary {
+            background: linear-gradient(135deg, #0d6efd, #0a58ca) !important;
+        }
+        
+        #chatMessages .bg-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid p-0">
+        <!-- AI Testing Assistant Header -->
+        <div class="container-fluid bg-dark border-bottom">
+            <div class="container py-3">
+                <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                    <div class="card-body py-3">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h5 class="text-white mb-1">
+                                    <i class="fas fa-robot me-2"></i>
+                                    AI Testing Assistant
+                                </h5>
+                                <p class="text-white-50 mb-0 small">Get intelligent help with test analysis, debugging, and optimization</p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <button class="btn btn-light btn-sm" id="toggleAIChat">
+                                    <i class="fas fa-comments me-2"></i>Open AI Chat
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Chat Interface (Open by Default) -->
+                <div class="card mt-3" id="aiChatInterface" style="display: block;">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <i class="fas fa-brain me-2"></i>AI Testing Assistant
+                        </h6>
+                        <button class="btn btn-sm btn-outline-secondary" id="minimizeAIChat" title="Minimize">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
+                    <div class="card-body" id="aiChatBody">
+                        <!-- Real-time Test Status Display -->
+                        <div class="mb-3">
+                            <h6 class="text-info mb-2"><i class="fas fa-chart-line me-1"></i>Current Test Status</h6>
+                            <div id="realTimeTestStatus" class="small">
+                                <div class="row g-2 mb-2">
+                                    <div class="col-4">
+                                        <div class="text-center">
+                                            <div class="badge bg-secondary w-100" id="totalTestCount">Loading...</div>
+                                            <small class="text-muted">Total Tests</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="text-center">
+                                            <div class="badge bg-success w-100" id="passingTestCount">Loading...</div>
+                                            <small class="text-muted">Passing</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="text-center">
+                                            <div class="badge bg-danger w-100" id="failingTestCount">Loading...</div>
+                                            <small class="text-muted">Failing</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="progress mb-2" style="height: 8px;">
+                                    <div id="testProgressBar" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <div class="text-center small text-muted">
+                                    Success Rate: <span id="testSuccessRate">0%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Autonomous Fixer Status -->
+                        <div class="mb-3">
+                            <h6 class="text-warning mb-2"><i class="fas fa-magic me-1"></i>Self-Healing Status</h6>
+                            <div id="autonomousFixerStatus" class="small">
+                                <div class="row g-2 mb-2">
+                                    <div class="col-4">
+                                        <div class="text-center">
+                                            <div class="badge bg-secondary w-100" id="fixerRunning">Inactive</div>
+                                            <small class="text-muted">Status</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="text-center">
+                                            <div class="badge bg-primary w-100" id="fixerIteration">0</div>
+                                            <small class="text-muted">Iteration</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="text-center">
+                                            <div class="badge bg-info w-100" id="fixesApplied">0</div>
+                                            <small class="text-muted">Fixes Applied</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Test Failures -->
+                        <div class="mb-3">
+                            <h6 class="text-danger mb-2"><i class="fas fa-exclamation-triangle me-1"></i>Recent Failures</h6>
+                            <div id="recentFailures" class="small" style="max-height: 120px; overflow-y: auto; border: 1px solid #333; border-radius: 4px; padding: 8px; background: #f8f9fa;">
+                                <div class="text-muted text-center py-2">No recent failures detected</div>
+                            </div>
+                        </div>
+
+                        <!-- AI Health Analysis -->
+                        <div class="mb-3">
+                            <h6 class="text-success mb-2"><i class="fas fa-heartbeat me-1"></i>System Health</h6>
+                            <div id="aiHealthAnalysis" class="small">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div class="text-center">
+                                            <div class="badge bg-secondary w-100" id="healthScore">Unknown</div>
+                                            <small class="text-muted">Health Score</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="text-center">
+                                            <div class="badge bg-secondary w-100" id="systemStatus">Unknown</div>
+                                            <small class="text-muted">Status</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="chatMessages" class="mb-3" style="height: 200px; overflow-y: auto; border: 1px solid #333; border-radius: 4px; padding: 15px; background: #0d1117;">
+                            <div class="text-muted text-center py-4" id="welcomeMessage">
+                                <i class="fas fa-robot fa-2x mb-2"></i>
+                                <p>AI Assistant ready to help with testing questions</p>
+                                <small>Ask about test failures, coverage optimization, or debugging strategies</small>
+                            </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="chatInput" placeholder="Ask about test results, failures, or optimization suggestions...">
+                            <button class="btn btn-primary" type="button" id="sendMessage">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <strong>Quick commands:</strong>
+                                "analyze failures" | "suggest optimizations" | "explain coverage" | "debug test X"
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Autonomous Test Fixer -->
+                <div class="card mt-3" id="autonomousFixer">
+                    <div class="card-header" style="background: linear-gradient(135deg, #6f42c1, #e83e8c);">
+                        <h6 class="mb-0 text-white">
+                            <i class="fas fa-robot me-2"></i>Autonomous Test Fixer - Closed Loop System
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-sync-alt me-2"></i>Self-Healing Test System
+                                </h6>
+                                <p class="mb-3">
+                                    AI continuously runs tests, analyzes failures, applies fixes, and repeats until 100% pass rate.
+                                </p>
+                                <div id="autonomousStatus" class="mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-secondary me-2">Ready</span>
+                                        <span class="text-muted">Click "Start Autonomous Fixing" to begin</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-success" id="startAutonomous">
+                                        <i class="fas fa-play me-2"></i>Start Autonomous Fixing
+                                    </button>
+                                    <button class="btn btn-danger" id="stopAutonomous" style="display: none;">
+                                        <i class="fas fa-stop me-2"></i>Stop Cycle
+                                    </button>
+                                    <button class="btn btn-outline-info" id="viewAutonomousLogs">
+                                        <i class="fas fa-list me-2"></i>View Logs
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title">Progress</h6>
+                                        <div class="mb-2">
+                                            <strong id="autonomousIteration">0</strong> / 50 iterations
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong id="autonomousFixes">0</strong> fixes applied
+                                        </div>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-success" id="autonomousProgress" 
+                                                 style="width: 0%" role="progressbar"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Internal Log -->
+                <div class="card mt-3" id="aiInternalLog" style="display: block;">
+                    <div class="card-header" style="background: linear-gradient(135deg, #dc3545, #fd7e14);">
+                        <h6 class="mb-0 text-white">
+                            <i class="fas fa-exclamation-triangle me-2"></i>AI Internal Log - Test Failures Detected
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-start">
+                            <div class="me-3">
+                                <i class="fas fa-robot fa-2x text-danger"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="text-danger mb-2">AI Assistant Notice</h6>
+                                <p class="mb-3" id="aiLogMessage">
+                                    I've detected test failures in your codebase. Would you like me to automatically analyze and fix these failed tests?
+                                </p>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-danger" id="aiFixTests">
+                                        <i class="fas fa-magic me-2"></i>Yes, Fix Tests Automatically
+                                    </button>
+                                    <button class="btn btn-outline-secondary" id="aiAnalyzeOnly">
+                                        <i class="fas fa-search me-2"></i>Just Analyze Issues
+                                    </button>
+                                    <button class="btn btn-outline-dark" id="aiDismissLog">
+                                        <i class="fas fa-times me-2"></i>Dismiss
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3" id="aiFixProgress" style="display: none;">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border spinner-border-sm text-danger me-2" role="status"></div>
+                                <span class="text-muted">AI is analyzing and fixing test failures...</span>
+                            </div>
+                            <div class="progress mt-2" style="height: 6px;">
+                                <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated" id="aiFixProgressBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Code Monitor & Recommendations -->
+                <div class="card mt-3" id="aiRecommendationsPanel">
+                    <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                        <h6 class="mb-0 text-white">
+                            <i class="fas fa-lightbulb me-2"></i>AI Code Monitor & Recommendations
+                        </h6>
+                        <div>
+                            <button class="btn btn-sm btn-light me-2" id="refreshRecommendations">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-light" id="toggleRecommendations">
+                                <i class="fas fa-chevron-up"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body" id="recommendationsContent">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-success mb-3">
+                                    <i class="fas fa-chart-line me-2"></i>Code Quality Analysis
+                                </h6>
+                                <div id="codeQualityMetrics">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>Code Coverage</span>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress me-2" style="width: 100px; height: 8px;">
+                                                <div class="progress-bar bg-success" id="coverageProgress" style="width: 0%"></div>
+                                            </div>
+                                            <small id="coverageText">--%</small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>Test Success Rate</span>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress me-2" style="width: 100px; height: 8px;">
+                                                <div class="progress-bar bg-info" id="successProgress" style="width: 0%"></div>
+                                            </div>
+                                            <small id="successText">--%</small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>Code Complexity</span>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress me-2" style="width: 100px; height: 8px;">
+                                                <div class="progress-bar bg-warning" id="complexityProgress" style="width: 0%"></div>
+                                            </div>
+                                            <small id="complexityText">Low</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-robot me-2"></i>AI Recommendations
+                                </h6>
+                                <div id="aiRecommendationsList">
+                                    <div class="text-center text-muted py-3">
+                                        <i class="fas fa-brain fa-2x mb-2"></i>
+                                        <p>Analyzing codebase...</p>
+                                        <div class="spinner-border spinner-border-sm" role="status"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h6 class="text-info mb-3">
+                                <i class="fas fa-tasks me-2"></i>Recommended Actions
+                            </h6>
+                            <div id="recommendedActions" class="row">
+                                <!-- Actions will be populated by AI -->
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3 text-center">
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                Last updated: <span id="lastUpdated">Never</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Bar -->
+        <nav class="navbar navbar-expand-lg navbar-dark mb-3" style="background: linear-gradient(135deg, #6f42c1, #6610f2); border-radius: 10px;">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/tests">
+                    <i class="fas fa-flask me-2"></i>Test Dashboard
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/tests">
+                                <i class="fas fa-vial me-1"></i>Tests
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">
+                                <i class="fas fa-home me-1"></i>Course Generator
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/courses">
+                                <i class="fas fa-list me-1"></i>Generated Courses
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-tools me-1"></i>Tools
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/api/stats"><i class="fas fa-chart-bar me-2"></i>API Stats</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="window.open('/tests', '_blank')"><i class="fas fa-external-link-alt me-2"></i>Open in New Tab</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" onclick="location.reload()"><i class="fas fa-sync-alt me-2"></i>Refresh Dashboard</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="row g-0">
+            <!-- Left Sidebar -->
+            <div class="col-md-3 test-sidebar">
+                <div class="p-3 border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-flask me-2"></i>
+                        Test Suite
+                    </h5>
+                </div>
+                
+                <!-- Test Controls -->
+                <div class="p-3 border-bottom">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success btn-sm" id="runAllTests">
+                            <i class="fas fa-play me-2"></i>Run All Tests
+                        </button>
+                        <button class="btn btn-primary btn-sm" id="runSelectedTest" disabled>
+                            <i class="fas fa-play-circle me-2"></i>Run Selected
+                        </button>
+                        <button class="btn btn-secondary btn-sm" id="runWithCoverage">
+                            <i class="fas fa-chart-line me-2"></i>Run with Coverage
+                        </button>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="verboseOutput" checked>
+                            <label class="form-check-label small" for="verboseOutput">
+                                Verbose Output
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Test Files -->
+                <div class="p-3">
+                    <h6 class="text-muted mb-2">Test Files - Organized Structure</h6>
+                    <div id="testFilesList">
+                        {% set current_category = '' %}
+                        {% for test_file in test_files %}
+                            {% if test_file.category != current_category %}
+                                {% set current_category = test_file.category %}
+                                <div class="test-category-header mt-2 mb-1">
+                                    <small class="text-muted fw-bold">
+                                        {% if current_category == 'unit' %}
+                                            <i class="fas fa-cog me-1"></i>Unit Tests
+                                        {% elif current_category == 'integration' %}
+                                            <i class="fas fa-link me-1"></i>Integration Tests
+                                        {% elif current_category == 'functional' %}
+                                            <i class="fas fa-rocket me-1"></i>Functional Tests
+                                        {% else %}
+                                            <i class="fas fa-file me-1"></i>Legacy Tests
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            {% endif %}
+                            <div class="test-file-item ps-3" data-file="{{ test_file.path }}" data-category="{{ test_file.category }}">
+                                <i class="fas fa-file-code me-2"></i>
+                                {% if test_file.display_name %}
+                                    {{ test_file.display_name }}
+                                {% else %}
+                                    {{ test_file.name }}
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- API Endpoints Status -->
+                <div class="p-3 border-top">
+                    <h6 class="text-muted mb-2">
+                        <i class="fas fa-plug me-1"></i>API Endpoints Status
+                    </h6>
+                    <div id="endpointsStatus" class="endpoint-status-container">
+                        <div class="small text-muted">Loading endpoint status...</div>
+                    </div>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="p-3 border-top">
+                    <h6 class="text-muted mb-2">Quick Stats</h6>
+                    <div id="testStats">
+                        <div class="small">
+                            <div>Total Tests: <span id="totalTests">-</span></div>
+                            <div>Passed: <span id="passedTests" class="test-passed">-</span></div>
+                            <div>Failed: <span id="failedTests" class="test-failed">-</span></div>
+                            <div>Duration: <span id="testDuration">-</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <div class="p-3">
+                    <!-- Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4>
+                            <i class="fas fa-vial me-2"></i>
+                            Test Results
+                        </h4>
+                        <div>
+                            <a href="/" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-arrow-left me-1"></i>Back to App
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Status Bar -->
+                    <div class="card mb-3" id="statusCard">
+                        <div class="card-body py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div id="testStatus">
+                                    <i class="fas fa-circle text-secondary me-2"></i>
+                                    Ready to run tests
+                                </div>
+                                <div id="testProgress" style="display: none;">
+                                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                    Running tests...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Test Results Tabs -->
+                    <ul class="nav nav-tabs" id="resultTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="output-tab" data-bs-toggle="tab" data-bs-target="#output" type="button">
+                                <i class="fas fa-terminal me-1"></i>Output
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="coverage-tab" data-bs-toggle="tab" data-bs-target="#coverage" type="button">
+                                <i class="fas fa-chart-pie me-1"></i>Coverage
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button">
+                                <i class="fas fa-list me-1"></i>Details
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="resultTabContent">
+                        <!-- Output Tab -->
+                        <div class="tab-pane fade show active" id="output" role="tabpanel">
+                            <div class="test-output mt-3" id="testOutput">
+                                <div class="text-muted">No tests run yet. Click "Run All Tests" to start.</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Coverage Tab -->
+                        <div class="tab-pane fade" id="coverage" role="tabpanel">
+                            <div class="mt-3">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-body text-center">
+                                                <h5 class="card-title">Overall Coverage</h5>
+                                                <div class="coverage-bar mb-2">
+                                                    <div class="coverage-fill" id="overallCoverageFill" style="width: 0%"></div>
+                                                </div>
+                                                <h3 id="overallCoveragePercent">0%</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h6 class="card-title">Coverage Breakdown</h6>
+                                                <div id="coverageBreakdown">
+                                                    <div class="small text-muted">Run tests with coverage to see details</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="filesCoverage"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Details Tab -->
+                        <div class="tab-pane fade" id="details" role="tabpanel">
+                            <div class="mt-3">
+                                <div id="testDetails">
+                                    <div class="text-muted">Test details will appear here after running tests.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        class TestDashboard {
+            constructor() {
+                this.selectedFile = null;
+                this.pollInterval = null;
+                this.endpointsData = null;
+                this.testResults = null;
+                this.setupEventListeners();
+                this.loadEndpointStatus();
+            }
+            
+            setupEventListeners() {
+                // File selection
+                document.querySelectorAll('.test-file-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        document.querySelectorAll('.test-file-item').forEach(i => i.classList.remove('active'));
+                        e.currentTarget.classList.add('active');
+                        this.selectedFile = e.currentTarget.dataset.file;
+                        document.getElementById('runSelectedTest').disabled = false;
+                        
+                        // Update button text to show selected test
+                        const category = e.currentTarget.dataset.category;
+                        const fileName = this.selectedFile.split('/').pop();
+                        document.getElementById('runSelectedTest').innerHTML = 
+                            `<i class="fas fa-play me-1"></i>Run ${category.charAt(0).toUpperCase() + category.slice(1)} Test`;
+                    });
+                });
+                
+                // Run buttons
+                document.getElementById('runAllTests').addEventListener('click', () => this.runTests());
+                document.getElementById('runSelectedTest').addEventListener('click', () => this.runTests(this.selectedFile));
+                document.getElementById('runWithCoverage').addEventListener('click', () => this.runTests(null, true));
+            }
+            
+            async loadEndpointStatus() {
+                try {
+                    const response = await fetch('/api/endpoints');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.endpointsData = data.endpoints;
+                        this.displayEndpointStatus();
+                    }
+                } catch (error) {
+                    document.getElementById('endpointsStatus').innerHTML = 
+                        '<div class="small text-danger">Failed to load endpoint status</div>';
+                }
+            }
+            
+            displayEndpointStatus() {
+                if (!this.endpointsData) return;
+                
+                const container = document.getElementById('endpointsStatus');
+                const categories = {};
+                
+                // Group endpoints by category
+                this.endpointsData.forEach(endpoint => {
+                    if (!categories[endpoint.category]) {
+                        categories[endpoint.category] = [];
+                    }
+                    categories[endpoint.category].push(endpoint);
+                });
+                
+                let html = '';
+                Object.keys(categories).forEach(category => {
+                    html += `<div class="endpoint-category mb-2">
+                        <div class="small fw-bold text-muted mb-1">${category}</div>`;
+                    
+                    categories[category].forEach(endpoint => {
+                        const status = this.getEndpointTestStatus(endpoint.test_name);
+                        const statusIcon = status === 'pass' ? 
+                            '<i class="fas fa-check-circle text-success"></i>' :
+                            status === 'fail' ? 
+                                '<i class="fas fa-times-circle text-danger"></i>' :
+                                '<i class="fas fa-question-circle text-muted"></i>';
+                        
+                        html += `<div class="endpoint-item d-flex justify-content-between align-items-center py-1">
+                            <div class="endpoint-info">
+                                <span class="badge bg-${this.getMethodColor(endpoint.method)} me-2">${endpoint.method}</span>
+                                <code class="small">${endpoint.path}</code>
+                            </div>
+                            <div class="endpoint-status">
+                                ${statusIcon}
+                            </div>
+                        </div>`;
+                    });
+                    
+                    html += '</div>';
+                });
+                
+                container.innerHTML = html;
+            }
+            
+            getEndpointTestStatus(testName) {
+                if (!this.testResults || !this.testResults.failed_tests || !this.testResults.passed_tests) {
+                    return 'unknown';
+                }
+                
+                const failed = this.testResults.failed_tests.some(test => test.includes(testName));
+                const passed = this.testResults.passed_tests.some(test => test.includes(testName));
+                
+                if (failed) return 'fail';
+                if (passed) return 'pass';
+                return 'unknown';
+            }
+            
+            getMethodColor(method) {
+                switch(method) {
+                    case 'GET': return 'primary';
+                    case 'POST': return 'success';
+                    case 'PUT': return 'warning';
+                    case 'DELETE': return 'danger';
+                    default: return 'secondary';
+                }
+            }
+            
+            async runTests(testPath = null, coverage = false) {
+                const verbose = document.getElementById('verboseOutput').checked;
+                
+                this.showProgress();
+                
+                try {
+                    const response = await fetch('/api/tests/run', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            test_path: testPath ? `tests/${testPath}` : null,
+                            coverage: coverage,
+                            verbose: verbose
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.startPolling();
+                    } else {
+                        this.showError(result.error);
+                    }
+                    
+                } catch (error) {
+                    this.showError('Failed to start tests: ' + error.message);
+                }
+            }
+            
+            startPolling() {
+                this.pollInterval = setInterval(async () => {
+                    try {
+                        const response = await fetch('/api/tests/status');
+                        const status = await response.json();
+                        
+                        if (!status.running && status.success !== undefined) {
+                            // Tests completed
+                            clearInterval(this.pollInterval);
+                            this.testResults = status; // Store test results
+                            this.displayResults(status);
+                            this.hideProgress();
+                            
+                            // Refresh endpoint status with new test results
+                            this.displayEndpointStatus();
+                            
+                            // Automatically display test failures in AI Assistant window
+                            this.updateAIAssistantWithResults(status);
+                        }
+                        
+                    } catch (error) {
+                        console.error('Polling error:', error);
+                    }
+                }, 1000);
+            }
+            
+            updateAIAssistantWithResults(status) {
+                // Update AI Assistant with test results
+                if (window.aiAssistant) {
+                    window.aiAssistant.updateTestResults(status);
+                }
+                
+                // Update AI Internal Log with failures
+                if (window.aiInternalLog) {
+                    window.aiInternalLog.checkForTestFailures(status);
+                }
+                
+                // If there are failures, automatically display them in AI Assistant
+                if (!status.success && status.failed > 0) {
+                    this.displayFailuresInAIAssistant(status);
+                }
+            }
+            
+            displayFailuresInAIAssistant(status) {
+                if (!window.aiAssistant) return;
+                
+                // Ensure AI Assistant window is open and visible
+                window.aiAssistant.openChat();
+                
+                // Format failure information
+                let failureMessage = `🔍 **Test Failures Detected**\n\n`;
+                failureMessage += `**Summary:** ${status.failed} out of ${status.total} tests failed\n\n`;
+                
+                // Add specific failure details
+                if (status.output && status.output.includes('FAILURES')) {
+                    const failureSection = status.output.split('FAILURES')[1];
+                    if (failureSection) {
+                        const failures = failureSection.split('=====')[0];
+                        const lines = failures.split('\n').slice(1, 10); // First 10 lines of failures
+                        
+                        failureMessage += `**Failed Tests:**\n`;
+                        lines.forEach(line => {
+                            line = line.trim();
+                            if (line && !line.startsWith('_') && !line.startsWith('-')) {
+                                failureMessage += `• ${line}\n`;
+                            }
+                        });
+                    }
+                }
+                
+                failureMessage += `\n**Next Steps:**\n`;
+                failureMessage += `• Review the specific error messages above\n`;
+                failureMessage += `• Run "AI Fix Tests" for automatic repair\n`;
+                failureMessage += `• Check test files for syntax errors\n`;
+                failureMessage += `• Verify import paths and dependencies\n\n`;
+                failureMessage += `Would you like me to analyze these failures and suggest fixes?`;
+                
+                // Add the message to AI Assistant
+                setTimeout(() => {
+                    window.aiAssistant.addMessage('assistant', failureMessage);
+                }, 500);
+            }
+            
+            displayResults(results) {
+                // Update stats
+                if (results.summary) {
+                    document.getElementById('totalTests').textContent = 
+                        (results.summary.passed || 0) + (results.summary.failed || 0);
+                    document.getElementById('passedTests').textContent = results.summary.passed || 0;
+                    document.getElementById('failedTests').textContent = results.summary.failed || 0;
+                }
+                
+                if (results.duration) {
+                    document.getElementById('testDuration').textContent = results.duration.toFixed(2) + 's';
+                }
+                
+                // Update output
+                const output = document.getElementById('testOutput');
+                output.innerHTML = '';
+                
+                if (results.stdout) {
+                    const pre = document.createElement('pre');
+                    pre.textContent = results.stdout;
+                    pre.className = results.success ? 'test-passed' : 'test-failed';
+                    output.appendChild(pre);
+                }
+                
+                if (results.stderr) {
+                    const errorPre = document.createElement('pre');
+                    errorPre.textContent = results.stderr;
+                    errorPre.className = 'test-failed';
+                    output.appendChild(errorPre);
+                }
+                
+                // Update status
+                const statusIcon = results.success ? 
+                    '<i class="fas fa-check-circle text-success me-2"></i>' :
+                    '<i class="fas fa-times-circle text-danger me-2"></i>';
+                
+                document.getElementById('testStatus').innerHTML = 
+                    statusIcon + (results.success ? 'All tests passed!' : 'Some tests failed');
+                
+                // Update coverage if available
+                if (results.coverage) {
+                    this.displayCoverage(results.coverage);
+                }
+                
+                // Update test details
+                if (results.tests) {
+                    this.displayTestDetails(results.tests);
+                }
+                
+                // Send results to AI assistant for analysis
+                if (window.aiAssistant) {
+                    window.aiAssistant.updateTestResults(results);
+                }
+                
+                // Update AI Code Monitor with test results
+                if (window.aiCodeMonitor) {
+                    window.aiCodeMonitor.updateWithTestResults(results);
+                }
+                
+                // Trigger AI Internal Log for test failures - format results properly
+                if (window.aiInternalLog) {
+                    const formattedResults = {
+                        success: results.success,
+                        failed: results.summary ? results.summary.failed : 0,
+                        passed: results.summary ? results.summary.passed : 0,
+                        total: results.summary ? (results.summary.failed || 0) + (results.summary.passed || 0) : 0
+                    };
+                    window.aiInternalLog.checkForTestFailures(formattedResults);
+                }
+            }
+            
+            displayCoverage(coverage) {
+                if (coverage.totals && coverage.totals.percent_covered !== undefined) {
+                    const percent = Math.round(coverage.totals.percent_covered);
+                    document.getElementById('overallCoveragePercent').textContent = percent + '%';
+                    document.getElementById('overallCoverageFill').style.width = percent + '%';
+                    
+                    // Coverage breakdown
+                    const breakdown = document.getElementById('coverageBreakdown');
+                    breakdown.innerHTML = `
+                        <div>Lines: ${coverage.totals.covered_lines}/${coverage.totals.num_statements}</div>
+                        <div>Branches: ${coverage.totals.covered_branches || 0}/${coverage.totals.num_branches || 0}</div>
+                        <div>Missing: ${coverage.totals.missing_lines}</div>
+                    `;
+                }
+            }
+            
+            displayTestDetails(tests) {
+                const details = document.getElementById('testDetails');
+                details.innerHTML = '';
+                
+                tests.forEach(test => {
+                    const testDiv = document.createElement('div');
+                    testDiv.className = 'card mb-2';
+                    
+                    const statusClass = test.outcome === 'passed' ? 'text-success' : 'text-danger';
+                    const statusIcon = test.outcome === 'passed' ? 'check' : 'times';
+                    
+                    testDiv.innerHTML = `
+                        <div class="card-body py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-${statusIcon} ${statusClass} me-2"></i>
+                                    <strong>${test.nodeid || test.name}</strong>
+                                </div>
+                                <small class="text-muted">${test.duration ? test.duration.toFixed(3) + 's' : ''}</small>
+                            </div>
+                            ${test.call && test.call.longrepr ? `<div class="small text-muted mt-1">${test.call.longrepr}</div>` : ''}
+                        </div>
+                    `;
+                    
+                    details.appendChild(testDiv);
+                });
+            }
+            
+            showProgress() {
+                document.getElementById('testStatus').style.display = 'none';
+                document.getElementById('testProgress').style.display = 'block';
+                
+                // Disable run buttons
+                document.getElementById('runAllTests').disabled = true;
+                document.getElementById('runSelectedTest').disabled = true;
+                document.getElementById('runWithCoverage').disabled = true;
+            }
+            
+            hideProgress() {
+                document.getElementById('testStatus').style.display = 'block';
+                document.getElementById('testProgress').style.display = 'none';
+                
+                // Enable run buttons
+                document.getElementById('runAllTests').disabled = false;
+                document.getElementById('runSelectedTest').disabled = this.selectedFile === null;
+                document.getElementById('runWithCoverage').disabled = false;
+            }
+            
+            showError(message) {
+                document.getElementById('testOutput').innerHTML = 
+                    `<div class="test-failed">Error: ${message}</div>`;
+                this.hideProgress();
+            }
+        }
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            new TestDashboard();
+            window.aiAssistant = new AITestingAssistant();
+            window.aiCodeMonitor = new AICodeMonitor();
+            window.aiInternalLog = new AIInternalLog();
+        });
+
+        // AI Testing Assistant Class
+        class AITestingAssistant {
+            constructor() {
+                this.chatOpen = false;
+                this.currentTestResults = null;
+                this.setupEventListeners();
+            }
+            
+            setupEventListeners() {
+                document.getElementById('toggleAIChat').addEventListener('click', () => {
+                    this.toggleChat();
+                });
+                
+                // Handle minimize button for AI chat
+                document.getElementById('minimizeAIChat').addEventListener('click', () => {
+                    this.minimizeChat();
+                });
+                
+                document.getElementById('sendMessage').addEventListener('click', () => {
+                    this.sendMessage();
+                });
+                
+                document.getElementById('chatInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.sendMessage();
+                    }
+                });
+                
+                // Start real-time updates for AI assistant info
+                this.startRealTimeUpdates();
+            }
+            
+            toggleChat() {
+                if (this.chatOpen) {
+                    this.closeChat();
+                } else {
+                    this.openChat();
+                }
+            }
+            
+            openChat() {
+                document.getElementById('aiChatInterface').style.display = 'block';
+                document.getElementById('toggleAIChat').innerHTML = 
+                    '<i class="fas fa-times me-2"></i>Close AI Chat';
+                this.chatOpen = true;
+                
+                // Focus on input
+                document.getElementById('chatInput').focus();
+            }
+            
+            closeChat() {
+                document.getElementById('aiChatInterface').style.display = 'none';
+                document.getElementById('toggleAIChat').innerHTML = 
+                    '<i class="fas fa-comments me-2"></i>Open AI Chat';
+                this.chatOpen = false;
+            }
+            
+            minimizeChat() {
+                const chatBody = document.getElementById('aiChatBody');
+                const minimizeBtn = document.getElementById('minimizeAIChat');
+                
+                if (chatBody.style.display === 'none') {
+                    chatBody.style.display = 'block';
+                    minimizeBtn.innerHTML = '<i class="fas fa-minus"></i>';
+                    minimizeBtn.title = 'Minimize';
+                } else {
+                    chatBody.style.display = 'none';
+                    minimizeBtn.innerHTML = '<i class="fas fa-plus"></i>';
+                    minimizeBtn.title = 'Maximize';
+                }
+            }
+            
+            startRealTimeUpdates() {
+                // Update AI assistant with current test information
+                this.updateTestStatus();
+                
+                // Set up periodic updates every 5 seconds
+                setInterval(() => {
+                    this.updateTestStatus();
+                    this.updateAutonomousStatus();
+                    this.updateSystemHealth();
+                }, 5000);
+            }
+            
+            updateTestStatus() {
+                // Get current test stats from the main dashboard
+                const totalTests = document.getElementById('totalTests')?.textContent || '0';
+                const passedTests = document.getElementById('passedTests')?.textContent || '0';
+                const failedTests = document.getElementById('failedTests')?.textContent || '0';
+                
+                // Update AI assistant display
+                document.getElementById('totalTestCount').textContent = totalTests;
+                document.getElementById('passingTestCount').textContent = passedTests;
+                document.getElementById('failingTestCount').textContent = failedTests;
+                
+                // Update progress bar
+                const total = parseInt(totalTests) || 1;
+                const passed = parseInt(passedTests) || 0;
+                const successRate = Math.round((passed / total) * 100);
+                
+                document.getElementById('testProgressBar').style.width = successRate + '%';
+                document.getElementById('testSuccessRate').textContent = successRate + '%';
+                
+                // Update badge colors based on status
+                const passingBadge = document.getElementById('passingTestCount');
+                const failingBadge = document.getElementById('failingTestCount');
+                
+                if (parseInt(failedTests) > 0) {
+                    failingBadge.className = 'badge bg-danger w-100';
+                } else {
+                    failingBadge.className = 'badge bg-success w-100';
+                }
+            }
+            
+            async updateAutonomousStatus() {
+                try {
+                    const response = await fetch('/api/autonomous-fixer/status');
+                    const status = await response.json();
+                    
+                    document.getElementById('fixerRunning').textContent = status.running ? 'Active' : 'Inactive';
+                    document.getElementById('fixerRunning').className = status.running ? 
+                        'badge bg-success w-100' : 'badge bg-secondary w-100';
+                    
+                    document.getElementById('fixerIteration').textContent = status.iteration || 0;
+                    document.getElementById('fixesApplied').textContent = status.total_fixes_applied || 0;
+                    
+                } catch (error) {
+                    // Silently handle error - keep current status
+                }
+            }
+            
+            async updateSystemHealth() {
+                try {
+                    const response = await fetch('/api/self-healing/health-report');
+                    const health = await response.json();
+                    
+                    if (health.health_analysis) {
+                        const score = health.health_analysis.overall_health_score || 'Unknown';
+                        const status = health.health_analysis.system_status || 'Unknown';
+                        
+                        document.getElementById('healthScore').textContent = score;
+                        document.getElementById('systemStatus').textContent = status;
+                        
+                        // Update colors based on health
+                        const healthBadge = document.getElementById('healthScore');
+                        if (typeof score === 'number') {
+                            if (score >= 80) {
+                                healthBadge.className = 'badge bg-success w-100';
+                            } else if (score >= 60) {
+                                healthBadge.className = 'badge bg-warning w-100';
+                            } else {
+                                healthBadge.className = 'badge bg-danger w-100';
+                            }
+                        }
+                    }
+                } catch (error) {
+                    // Silently handle error - keep current status
+                }
+            }
+            
+            async sendMessage() {
+                const input = document.getElementById('chatInput');
+                const message = input.value.trim();
+                
+                if (!message) return;
+                
+                // Clear input
+                input.value = '';
+                
+                // Add user message to chat
+                this.addMessage('user', message);
+                
+                // Show typing indicator
+                this.showTyping();
+                
+                try {
+                    // Send to AI API
+                    const response = await fetch('/api/ai-testing-assistant', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: message,
+                            context: {
+                                test_results: this.currentTestResults,
+                                current_page: 'test_dashboard'
+                            }
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    // Remove typing indicator
+                    this.hideTyping();
+                    
+                    if (result.success) {
+                        this.addMessage('assistant', result.response);
+                        
+                        // Handle any suggested actions
+                        if (result.suggested_actions) {
+                            this.handleSuggestedActions(result.suggested_actions);
+                        }
+                    } else {
+                        this.addMessage('assistant', 'Sorry, I encountered an error. Please try again.');
+                    }
+                    
+                } catch (error) {
+                    this.hideTyping();
+                    this.addMessage('assistant', 'Connection error. Please check your network and try again.');
+                }
+            }
+            
+            addMessage(sender, content) {
+                const chatMessages = document.getElementById('chatMessages');
+                const welcomeMessage = document.getElementById('welcomeMessage');
+                
+                // Remove welcome message if it exists
+                if (welcomeMessage) {
+                    welcomeMessage.remove();
+                }
+                
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `mb-3 ${sender === 'user' ? 'text-end' : ''}`;
+                
+                const avatar = sender === 'user' ? 
+                    '<i class="fas fa-user-circle me-2"></i>' : 
+                    '<i class="fas fa-robot me-2"></i>';
+                
+                const bubbleClass = sender === 'user' ? 
+                    'bg-primary text-white ms-auto' : 
+                    'bg-secondary text-white';
+                
+                messageDiv.innerHTML = `
+                    <div class="d-inline-block p-2 rounded ${bubbleClass}" style="max-width: 80%;">
+                        ${sender === 'assistant' ? avatar : ''}
+                        ${content}
+                        ${sender === 'user' ? avatar : ''}
+                    </div>
+                    <div class="small text-muted mt-1">
+                        ${new Date().toLocaleTimeString()}
+                    </div>
+                `;
+                
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            showTyping() {
+                const chatMessages = document.getElementById('chatMessages');
+                const typingDiv = document.createElement('div');
+                typingDiv.id = 'typingIndicator';
+                typingDiv.className = 'mb-3';
+                typingDiv.innerHTML = `
+                    <div class="d-inline-block p-2 rounded bg-secondary text-white">
+                        <i class="fas fa-robot me-2"></i>
+                        <span class="typing-dots">
+                            <span>.</span><span>.</span><span>.</span>
+                        </span>
+                    </div>
+                `;
+                
+                chatMessages.appendChild(typingDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            hideTyping() {
+                const typingIndicator = document.getElementById('typingIndicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+            
+            updateTestResults(results) {
+                this.currentTestResults = results;
+                
+                // Update recent failures display
+                this.updateRecentFailures(results);
+                
+                // Auto-suggest analysis if there are failures
+                if (results && !results.success && this.chatOpen) {
+                    this.addMessage('assistant', 
+                        'I noticed some test failures. Would you like me to analyze them and suggest fixes?');
+                }
+            }
+            
+            updateRecentFailures(results) {
+                const failuresContainer = document.getElementById('recentFailures');
+                
+                if (!results || !results.tests) {
+                    failuresContainer.innerHTML = '<div class="text-muted text-center py-2">No recent failures detected</div>';
+                    return;
+                }
+                
+                const failedTests = results.tests.filter(test => test.outcome === 'failed' || test.outcome === 'error');
+                
+                if (failedTests.length === 0) {
+                    failuresContainer.innerHTML = '<div class="text-success text-center py-2"><i class="fas fa-check me-1"></i>All tests passing!</div>';
+                    return;
+                }
+                
+                const failuresHtml = failedTests.slice(0, 5).map(test => {
+                    const shortError = test.call?.longrepr?.split('\n')[0] || 'Test failed';
+                    const truncatedError = shortError.length > 60 ? shortError.substring(0, 60) + '...' : shortError;
+                    
+                    return `
+                        <div class="mb-2 p-2 border rounded" style="background: #fff3cd;">
+                            <div class="fw-bold text-danger small">${test.nodeid || 'Unknown test'}</div>
+                            <div class="text-muted small">${truncatedError}</div>
+                        </div>
+                    `;
+                }).join('');
+                
+                failuresContainer.innerHTML = failuresHtml;
+            }
+            
+            // Make this available globally so TestDashboard can call it
+            static getInstance() {
+                return window.aiAssistant;
+            }
+            
+            handleSuggestedActions(actions) {
+                actions.forEach(action => {
+                    if (action.type === 'run_test') {
+                        // Add a button to run specific test
+                        const lastMessage = document.querySelector('#chatMessages .mb-3:last-child');
+                        const actionButton = document.createElement('button');
+                        actionButton.className = 'btn btn-sm btn-outline-primary mt-2';
+                        actionButton.innerHTML = `<i class="fas fa-play me-1"></i>Run ${action.test}`;
+                        actionButton.onclick = () => {
+                            // Trigger test run
+                            this.addMessage('assistant', `Running ${action.test}...`);
+                        };
+                        lastMessage.appendChild(actionButton);
+                    }
+                });
+            }
+        }
+
+        // AI Code Monitor Class
+        class AICodeMonitor {
+            constructor() {
+                this.isAnalyzing = false;
+                this.autoRefreshInterval = null;
+                this.currentMetrics = {
+                    coverage: 0,
+                    successRate: 0,
+                    complexity: 'Low'
+                };
+                this.setupEventListeners();
+                this.startAutoRefresh();
+                this.performInitialAnalysis();
+            }
+            
+            setupEventListeners() {
+                document.getElementById('refreshRecommendations').addEventListener('click', () => {
+                    this.analyzeCodebase();
+                });
+                
+                document.getElementById('toggleRecommendations').addEventListener('click', () => {
+                    this.togglePanel();
+                });
+            }
+            
+            togglePanel() {
+                const content = document.getElementById('recommendationsContent');
+                const button = document.getElementById('toggleRecommendations');
+                
+                if (content.style.display === 'none') {
+                    content.style.display = 'block';
+                    button.innerHTML = '<i class="fas fa-chevron-up"></i>';
+                } else {
+                    content.style.display = 'none';
+                    button.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                }
+            }
+            
+            startAutoRefresh() {
+                // Refresh every 5 minutes
+                this.autoRefreshInterval = setInterval(() => {
+                    this.analyzeCodebase();
+                }, 300000);
+            }
+            
+            stopAutoRefresh() {
+                if (this.autoRefreshInterval) {
+                    clearInterval(this.autoRefreshInterval);
+                    this.autoRefreshInterval = null;
+                }
+            }
+            
+            async performInitialAnalysis() {
+                // Small delay to allow page to load
+                setTimeout(() => {
+                    this.analyzeCodebase();
+                }, 2000);
+            }
+            
+            async analyzeCodebase() {
+                if (this.isAnalyzing) return;
+                
+                this.isAnalyzing = true;
+                this.showAnalyzing();
+                
+                try {
+                    const response = await fetch('/api/ai-code-monitor', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            action: 'analyze',
+                            include_recommendations: true,
+                            current_metrics: this.currentMetrics
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.updateMetrics(result.metrics);
+                        this.updateRecommendations(result.recommendations);
+                        this.updateActions(result.actions);
+                        this.updateLastUpdated();
+                    } else {
+                        this.showError('Failed to analyze codebase: ' + result.error);
+                    }
+                    
+                } catch (error) {
+                    this.showError('Connection error: ' + error.message);
+                } finally {
+                    this.isAnalyzing = false;
+                }
+            }
+            
+            showAnalyzing() {
+                document.getElementById('aiRecommendationsList').innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-cog fa-spin fa-2x mb-2"></i>
+                        <p>Analyzing codebase...</p>
+                        <div class="spinner-border spinner-border-sm" role="status"></div>
+                    </div>
+                `;
+            }
+            
+            showError(message) {
+                document.getElementById('aiRecommendationsList').innerHTML = `
+                    <div class="text-center text-danger py-3">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        <p>${message}</p>
+                    </div>
+                `;
+            }
+            
+            updateMetrics(metrics) {
+                if (metrics.coverage !== undefined) {
+                    this.currentMetrics.coverage = metrics.coverage;
+                    document.getElementById('coverageProgress').style.width = metrics.coverage + '%';
+                    document.getElementById('coverageText').textContent = metrics.coverage + '%';
+                }
+                
+                if (metrics.successRate !== undefined) {
+                    this.currentMetrics.successRate = metrics.successRate;
+                    document.getElementById('successProgress').style.width = metrics.successRate + '%';
+                    document.getElementById('successText').textContent = metrics.successRate + '%';
+                }
+                
+                if (metrics.complexity !== undefined) {
+                    this.currentMetrics.complexity = metrics.complexity;
+                    document.getElementById('complexityText').textContent = metrics.complexity;
+                    
+                    // Update complexity progress bar
+                    const complexityMap = { 'Low': 25, 'Medium': 50, 'High': 75, 'Very High': 100 };
+                    const complexityPercent = complexityMap[metrics.complexity] || 25;
+                    document.getElementById('complexityProgress').style.width = complexityPercent + '%';
+                }
+            }
+            
+            updateRecommendations(recommendations) {
+                const container = document.getElementById('aiRecommendationsList');
+                
+                if (!recommendations || recommendations.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-success py-3">
+                            <i class="fas fa-check-circle fa-2x mb-2"></i>
+                            <p>Great job! No immediate issues found.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const html = recommendations.map(rec => {
+                    const priorityClass = rec.priority === 'high' ? 'text-danger' : 
+                                        rec.priority === 'medium' ? 'text-warning' : 'text-info';
+                    const priorityIcon = rec.priority === 'high' ? 'exclamation-triangle' : 
+                                       rec.priority === 'medium' ? 'exclamation-circle' : 'info-circle';
+                    
+                    return `
+                        <div class="border-start border-3 border-${rec.priority === 'high' ? 'danger' : rec.priority === 'medium' ? 'warning' : 'info'} ps-3 mb-3">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-${priorityIcon} ${priorityClass} me-2 mt-1"></i>
+                                <div>
+                                    <h6 class="mb-1">${rec.title}</h6>
+                                    <p class="mb-1 small">${rec.description}</p>
+                                    ${rec.file ? `<small class="text-muted"><i class="fas fa-file-code me-1"></i>${rec.file}</small>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                container.innerHTML = html;
+            }
+            
+            updateActions(actions) {
+                const container = document.getElementById('recommendedActions');
+                
+                if (!actions || actions.length === 0) {
+                    container.innerHTML = '<div class="col-12 text-center text-muted">No actions recommended at this time.</div>';
+                    return;
+                }
+                
+                const html = actions.map(action => `
+                    <div class="col-md-6 mb-3">
+                        <div class="card bg-dark border-secondary">
+                            <div class="card-body p-3">
+                                <h6 class="card-title mb-2">
+                                    <i class="fas fa-${action.icon || 'tasks'} me-2"></i>
+                                    ${action.title}
+                                </h6>
+                                <p class="card-text small mb-2">${action.description}</p>
+                                <button class="btn btn-sm btn-outline-primary" onclick="window.aiCodeMonitor.executeAction('${action.id}')">
+                                    <i class="fas fa-play me-1"></i>Execute
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.innerHTML = html;
+            }
+            
+            async executeAction(actionId) {
+                try {
+                    const response = await fetch('/api/ai-code-monitor', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            action: 'execute',
+                            action_id: actionId
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Show success message or update UI
+                        this.showActionResult(result.message || 'Action executed successfully');
+                        // Refresh analysis after action
+                        setTimeout(() => this.analyzeCodebase(), 2000);
+                    } else {
+                        this.showActionResult('Failed to execute action: ' + result.error, 'error');
+                    }
+                    
+                } catch (error) {
+                    this.showActionResult('Error executing action: ' + error.message, 'error');
+                }
+            }
+            
+            showActionResult(message, type = 'success') {
+                // Create a toast notification
+                const toast = document.createElement('div');
+                toast.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show position-fixed`;
+                toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                toast.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                
+                document.body.appendChild(toast);
+                
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 5000);
+            }
+            
+            updateLastUpdated() {
+                document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+            }
+            
+            updateWithTestResults(testResults) {
+                if (testResults && testResults.coverage) {
+                    const coverage = Math.round(testResults.coverage.totals?.percent_covered || 0);
+                    this.updateMetrics({ coverage });
+                }
+                
+                if (testResults && testResults.success !== undefined) {
+                    // Calculate success rate from test results
+                    const total = testResults.total || 0;
+                    const passed = testResults.passed || 0;
+                    const successRate = total > 0 ? Math.round((passed / total) * 100) : 0;
+                    this.updateMetrics({ successRate });
+                }
+            }
+        }
+
+        // AI Internal Log Class
+        class AIInternalLog {
+            constructor() {
+                this.logPanel = document.getElementById('aiInternalLog');
+                this.isVisible = false;
+                this.currentFailures = [];
+                this.setupEventListeners();
+                // Initialize with waiting status
+                this.showWaitingStatus();
+            }
+            
+            setupEventListeners() {
+                document.getElementById('aiFixTests').addEventListener('click', () => {
+                    this.startAutomaticFix();
+                });
+                
+                document.getElementById('aiAnalyzeOnly').addEventListener('click', () => {
+                    this.analyzeFailures();
+                });
+                
+                document.getElementById('aiDismissLog').addEventListener('click', () => {
+                    this.dismissLog();
+                });
+            }
+            
+            checkForTestFailures(testResults) {
+                // Always show the log and update based on test status
+                if (testResults && testResults.success === false) {
+                    const failedCount = testResults.failed || 0;
+                    const totalCount = testResults.total || 0;
+                    
+                    if (failedCount > 0) {
+                        this.currentFailures = testResults;
+                        this.showFailureLog(failedCount, totalCount);
+                    }
+                } else if (testResults && testResults.success === true) {
+                    // Tests are passing, show success status
+                    this.showSuccessStatus(testResults);
+                } else {
+                    // No test results yet, show waiting status
+                    this.showWaitingStatus();
+                }
+            }
+            
+            showFailureLog(failedCount, totalCount) {
+                const message = `I've detected ${failedCount} out of ${totalCount} tests are failing. Would you like me to automatically analyze and fix these failed tests?`;
+                document.getElementById('aiLogMessage').textContent = message;
+                
+                // Update header based on severity
+                const header = document.querySelector('#aiInternalLog .card-header h6');
+                const headerElement = document.querySelector('#aiInternalLog .card-header');
+                
+                if (failedCount > 10) {
+                    header.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>AI Internal Log - Critical Test Failures';
+                    headerElement.style.background = 'linear-gradient(135deg, #dc3545, #6f1d1b)';
+                } else if (failedCount > 5) {
+                    header.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>AI Internal Log - Multiple Test Failures';
+                    headerElement.style.background = 'linear-gradient(135deg, #dc3545, #fd7e14)';
+                } else {
+                    header.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>AI Internal Log - Test Failures Detected';
+                    headerElement.style.background = 'linear-gradient(135deg, #ffc107, #fd7e14)';
+                }
+                
+                // Show failure buttons
+                this.showFailureButtons();
+                
+                this.logPanel.style.display = 'block';
+                this.isVisible = true;
+                
+                // Auto-scroll to the log
+                this.logPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            showSuccessStatus(testResults) {
+                const totalCount = testResults.total || testResults.passed || 0;
+                const message = `All ${totalCount} tests are passing! Your codebase is healthy.`;
+                document.getElementById('aiLogMessage').textContent = message;
+                
+                // Update header for success
+                const header = document.querySelector('#aiInternalLog .card-header h6');
+                header.innerHTML = '<i class="fas fa-check-circle me-2"></i>AI Internal Log - All Tests Passing';
+                
+                // Update header style for success
+                const headerElement = document.querySelector('#aiInternalLog .card-header');
+                headerElement.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+                
+                // Show success buttons
+                this.showSuccessButtons();
+                
+                this.logPanel.style.display = 'block';
+                this.isVisible = true;
+            }
+            
+            showWaitingStatus() {
+                const message = `Waiting for test results... Click "Run All Tests" to check your codebase status.`;
+                document.getElementById('aiLogMessage').textContent = message;
+                
+                // Update header for waiting
+                const header = document.querySelector('#aiInternalLog .card-header h6');
+                header.innerHTML = '<i class="fas fa-clock me-2"></i>AI Internal Log - Waiting for Test Results';
+                
+                // Update header style for waiting
+                const headerElement = document.querySelector('#aiInternalLog .card-header');
+                headerElement.style.background = 'linear-gradient(135deg, #6c757d, #adb5bd)';
+                
+                // Show waiting buttons
+                this.showWaitingButtons();
+                
+                this.logPanel.style.display = 'block';
+                this.isVisible = true;
+            }
+            
+            showSuccessButtons() {
+                const buttonContainer = document.querySelector('#aiInternalLog .d-flex.gap-2');
+                buttonContainer.innerHTML = `
+                    <button class="btn btn-success" id="aiCelebrate">
+                        <i class="fas fa-trophy me-2"></i>Great Work!
+                    </button>
+                    <button class="btn btn-outline-primary" id="aiSuggestImprovements">
+                        <i class="fas fa-lightbulb me-2"></i>Suggest Improvements
+                    </button>
+                    <button class="btn btn-outline-secondary" id="aiMinimizeLog">
+                        <i class="fas fa-minus me-2"></i>Minimize
+                    </button>
+                `;
+                
+                // Add event listeners for new buttons
+                document.getElementById('aiCelebrate').addEventListener('click', () => {
+                    this.showCelebrationMessage();
+                });
+                
+                document.getElementById('aiSuggestImprovements').addEventListener('click', () => {
+                    this.suggestImprovements();
+                });
+                
+                document.getElementById('aiMinimizeLog').addEventListener('click', () => {
+                    this.minimizeLog();
+                });
+            }
+            
+            showWaitingButtons() {
+                const buttonContainer = document.querySelector('#aiInternalLog .d-flex.gap-2');
+                buttonContainer.innerHTML = `
+                    <button class="btn btn-primary" onclick="document.getElementById('runAllTests').click()">
+                        <i class="fas fa-play me-2"></i>Run Tests Now
+                    </button>
+                    <button class="btn btn-outline-info" id="aiShowTestInfo">
+                        <i class="fas fa-info-circle me-2"></i>About Tests
+                    </button>
+                    <button class="btn btn-outline-secondary" id="aiMinimizeLog">
+                        <i class="fas fa-minus me-2"></i>Minimize
+                    </button>
+                `;
+                
+                // Add event listeners
+                document.getElementById('aiShowTestInfo').addEventListener('click', () => {
+                    this.showTestInfo();
+                });
+                
+                document.getElementById('aiMinimizeLog').addEventListener('click', () => {
+                    this.minimizeLog();
+                });
+            }
+            
+            showFailureButtons() {
+                const buttonContainer = document.querySelector('#aiInternalLog .d-flex.gap-2');
+                buttonContainer.innerHTML = `
+                    <button class="btn btn-danger" id="aiFixTests">
+                        <i class="fas fa-magic me-2"></i>Yes, Fix Tests Automatically
+                    </button>
+                    <button class="btn btn-outline-secondary" id="aiAnalyzeOnly">
+                        <i class="fas fa-search me-2"></i>Just Analyze Issues
+                    </button>
+                    <button class="btn btn-outline-dark" id="aiMinimizeLog">
+                        <i class="fas fa-minus me-2"></i>Minimize
+                    </button>
+                `;
+                
+                // Re-add event listeners for failure buttons
+                document.getElementById('aiFixTests').addEventListener('click', () => {
+                    this.startAutomaticFix();
+                });
+                
+                document.getElementById('aiAnalyzeOnly').addEventListener('click', () => {
+                    this.analyzeFailures();
+                });
+                
+                document.getElementById('aiMinimizeLog').addEventListener('click', () => {
+                    this.minimizeLog();
+                });
+            }
+
+            dismissLog() {
+                this.logPanel.style.display = 'none';
+                this.isVisible = false;
+                this.hideProgress();
+            }
+            
+            minimizeLog() {
+                this.logPanel.style.display = 'none';
+                this.isVisible = false;
+            }
+            
+            async startAutomaticFix() {
+                this.showProgress();
+                
+                try {
+                    // Step 1: Analyze failures (25%)
+                    this.updateProgress(25, 'Analyzing test failures...');
+                    
+                    const analysisResponse = await fetch('/api/ai-fix-tests', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            action: 'analyze',
+                            test_results: this.currentFailures
+                        })
+                    });
+                    
+                    const analysis = await analysisResponse.json();
+                    
+                    if (!analysis.success) {
+                        throw new Error(analysis.error || 'Analysis failed');
+                    }
+                    
+                    // Step 2: Generate fixes (50%)
+                    this.updateProgress(50, 'Generating AI-powered fixes...');
+                    
+                    const fixResponse = await fetch('/api/ai-fix-tests', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            action: 'fix',
+                            analysis: analysis.data,
+                            test_results: this.currentFailures
+                        })
+                    });
+                    
+                    const fixResult = await fixResponse.json();
+                    
+                    if (!fixResult.success) {
+                        throw new Error(fixResult.error || 'Fix generation failed');
+                    }
+                    
+                    // Step 3: Apply fixes (75%)
+                    this.updateProgress(75, 'Applying fixes to codebase...');
+                    
+                    const applyResponse = await fetch('/api/ai-fix-tests', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            action: 'apply',
+                            fixes: fixResult.fixes
+                        })
+                    });
+                    
+                    const applyResult = await applyResponse.json();
+                    
+                    if (!applyResult.success) {
+                        throw new Error(applyResult.error || 'Failed to apply fixes');
+                    }
+                    
+                    // Step 4: Verify fixes (100%)
+                    this.updateProgress(100, 'Verifying fixes...');
+                    
+                    // Wait a moment then re-run tests
+                    setTimeout(() => {
+                        this.showSuccessMessage(applyResult.message || 'Tests have been automatically fixed!');
+                        
+                        // Trigger a new test run to verify fixes
+                        if (window.testDashboard) {
+                            setTimeout(() => {
+                                // Re-run tests to verify fixes
+                                document.getElementById('runAllTests').click();
+                            }, 2000);
+                        }
+                    }, 1000);
+                    
+                } catch (error) {
+                    this.showErrorMessage('Failed to fix tests: ' + error.message);
+                }
+            }
+            
+            async analyzeFailures() {
+                this.showProgress();
+                
+                try {
+                    this.updateProgress(50, 'Analyzing test failures...');
+                    
+                    const response = await fetch('/api/ai-fix-tests', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            action: 'analyze',
+                            test_results: this.currentFailures
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.updateProgress(100, 'Analysis complete');
+                        
+                        // Show analysis in chat
+                        if (window.aiAssistant && window.aiAssistant.chatOpen) {
+                            window.aiAssistant.addMessage('assistant', result.data.summary || 'Analysis completed. Check the detailed results above.');
+                        }
+                        
+                        setTimeout(() => {
+                            this.showSuccessMessage('Analysis completed! Check the AI chat for detailed insights.');
+                        }, 1000);
+                    } else {
+                        throw new Error(result.error || 'Analysis failed');
+                    }
+                    
+                } catch (error) {
+                    this.showErrorMessage('Analysis failed: ' + error.message);
+                }
+            }
+            
+            showProgress() {
+                document.getElementById('aiFixProgress').style.display = 'block';
+                this.updateProgress(0, 'Initializing...');
+            }
+            
+            hideProgress() {
+                document.getElementById('aiFixProgress').style.display = 'none';
+            }
+            
+            updateProgress(percent, message) {
+                document.getElementById('aiFixProgressBar').style.width = percent + '%';
+                document.querySelector('#aiFixProgress span').textContent = message;
+            }
+            
+            showSuccessMessage(message) {
+                this.hideProgress();
+                
+                // Replace buttons with success message
+                const buttonContainer = document.querySelector('#aiInternalLog .d-flex.gap-2');
+                buttonContainer.innerHTML = `
+                    <div class="alert alert-success mb-0">
+                        <i class="fas fa-check-circle me-2"></i>${message}
+                    </div>
+                `;
+                
+                // Auto-dismiss after 10 seconds
+                setTimeout(() => {
+                    this.dismissLog();
+                }, 10000);
+            }
+            
+            showErrorMessage(message) {
+                this.hideProgress();
+                
+                // Show error alert
+                const buttonContainer = document.querySelector('#aiInternalLog .d-flex.gap-2');
+                buttonContainer.innerHTML = `
+                    <div class="alert alert-danger mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>${message}
+                    </div>
+                    <button class="btn btn-outline-dark btn-sm mt-2" onclick="location.reload()">
+                        <i class="fas fa-redo me-1"></i>Retry
+                    </button>
+                `;
+            }
+            
+            showCelebrationMessage() {
+                const buttonContainer = document.querySelector('#aiInternalLog .d-flex.gap-2');
+                buttonContainer.innerHTML = `
+                    <div class="alert alert-success mb-0">
+                        <i class="fas fa-star me-2"></i>Excellent! Your code quality is top-notch. Keep up the great work!
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    this.showSuccessButtons();
+                }, 3000);
+            }
+            
+            suggestImprovements() {
+                if (window.aiAssistant) {
+                    window.aiAssistant.openChat();
+                    setTimeout(() => {
+                        window.aiAssistant.addMessage('assistant', 'Great job on passing all tests! Here are some suggestions for further improvements:\n\n• Consider adding more edge case tests\n• Review code coverage for any missed areas\n• Optimize performance in critical paths\n• Add integration tests for end-to-end workflows\n\nWould you like me to analyze any specific area for improvement opportunities?');
+                    }, 500);
+                }
+            }
+            
+            showTestInfo() {
+                if (window.aiAssistant) {
+                    window.aiAssistant.openChat();
+                    setTimeout(() => {
+                        window.aiAssistant.addMessage('assistant', 'This project includes comprehensive testing:\n\n📊 **Test Coverage:**\n• Flask routes and API endpoints\n• YouTube, transcript, AI services\n• Database operations\n• Utility functions and validators\n\n🔧 **Test Types:**\n• Unit tests for individual components\n• Integration tests for service interactions\n• API endpoint testing\n• Error handling verification\n\nClick "Run Tests Now" to check your codebase health!');
+                    }, 500);
+                }
+            }
+        }
+        // Autonomous Test Fixer Class
+        class AutonomousTestFixer {
+            constructor() {
+                this.pollInterval = null;
+                this.setupEventListeners();
+            }
+            
+            setupEventListeners() {
+                document.getElementById('startAutonomous').addEventListener('click', () => this.start());
+                document.getElementById('stopAutonomous').addEventListener('click', () => this.stop());
+                document.getElementById('viewAutonomousLogs').addEventListener('click', () => this.showLogs());
+            }
+            
+            async start() {
+                try {
+                    const response = await fetch('/api/autonomous-fixer/start', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.updateUI(true);
+                        this.startPolling();
+                        this.showStatus('Running', 'AI is analyzing and fixing tests autonomously...', 'success');
+                    } else {
+                        this.showStatus('Error', result.error, 'danger');
+                    }
+                    
+                } catch (error) {
+                    this.showStatus('Error', 'Failed to start autonomous fixer: ' + error.message, 'danger');
+                }
+            }
+            
+            async stop() {
+                try {
+                    const response = await fetch('/api/autonomous-fixer/stop', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.updateUI(false);
+                        this.stopPolling();
+                        this.showStatus('Stopped', 'Autonomous fixing cycle stopped', 'warning');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error stopping autonomous fixer:', error);
+                }
+            }
+            
+            startPolling() {
+                this.pollInterval = setInterval(() => this.checkStatus(), 2000);
+            }
+            
+            stopPolling() {
+                if (this.pollInterval) {
+                    clearInterval(this.pollInterval);
+                    this.pollInterval = null;
+                }
+            }
+            
+            async checkStatus() {
+                try {
+                    const response = await fetch('/api/autonomous-fixer/status');
+                    const status = await response.json();
+                    
+                    this.updateProgress(status);
+                    
+                    if (!status.running) {
+                        this.stopPolling();
+                        
+                        if (status.all_tests_passing) {
+                            this.showStatus('Complete', `All tests passing! Applied ${status.total_fixes_applied} fixes in ${status.iteration} iterations`, 'success');
+                            this.updateUI(false);
+                        } else if (status.iteration > 0) {
+                            this.showStatus('Stopped', `Stopped after ${status.iteration} iterations with ${status.total_fixes_applied} fixes applied`, 'warning');
+                            this.updateUI(false);
+                        }
+                    }
+                    
+                } catch (error) {
+                    console.error('Error checking autonomous fixer status:', error);
+                }
+            }
+            
+            updateProgress(status) {
+                document.getElementById('autonomousIteration').textContent = status.iteration || 0;
+                document.getElementById('autonomousFixes').textContent = status.total_fixes_applied || 0;
+                
+                const progress = Math.min((status.iteration || 0) / (status.max_iterations || 50) * 100, 100);
+                document.getElementById('autonomousProgress').style.width = progress + '%';
+                
+                if (status.running) {
+                    this.showStatus('Running', `Iteration ${status.iteration} - ${status.total_fixes_applied} fixes applied`, 'primary');
+                }
+            }
+            
+            updateUI(running) {
+                document.getElementById('startAutonomous').style.display = running ? 'none' : 'inline-block';
+                document.getElementById('stopAutonomous').style.display = running ? 'inline-block' : 'none';
+            }
+            
+            showStatus(title, message, type) {
+                const statusDiv = document.getElementById('autonomousStatus');
+                const badgeClass = type === 'success' ? 'bg-success' : 
+                                  type === 'danger' ? 'bg-danger' : 
+                                  type === 'warning' ? 'bg-warning' : 'bg-primary';
+                
+                statusDiv.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <span class="badge ${badgeClass} me-2">${title}</span>
+                        <span class="text-muted">${message}</span>
+                    </div>
+                `;
+            }
+            
+            showLogs() {
+                fetch('/api/autonomous-fixer/status')
+                    .then(response => response.json())
+                    .then(status => {
+                        const logs = status.fixes_history || [];
+                        let logContent = '<h6>Applied Fixes History:</h6>';
+                        
+                        if (logs.length === 0) {
+                            logContent += '<p class="text-muted">No fixes applied yet.</p>';
+                        } else {
+                            logContent += '<ul class="list-group">';
+                            logs.forEach((fix, index) => {
+                                logContent += `
+                                    <li class="list-group-item">
+                                        <strong>Fix ${index + 1}:</strong> ${fix.fix_description || 'Unknown fix'}<br>
+                                        <small class="text-muted">File: ${fix.file_path || 'Unknown'}</small>
+                                    </li>
+                                `;
+                            });
+                            logContent += '</ul>';
+                        }
+                        
+                        if (window.aiInternalLog) {
+                            const logPanel = document.getElementById('aiInternalLog');
+                            const messageDiv = logPanel.querySelector('#aiLogMessage');
+                            messageDiv.innerHTML = logContent;
+                        }
+                    })
+                    .catch(error => console.error('Error fetching logs:', error));
+            }
+        }
+
+        // Initialize autonomous fixer
+        window.autonomousFixer = new AutonomousTestFixer();
+        
+    </script>
+</body>
+</html>

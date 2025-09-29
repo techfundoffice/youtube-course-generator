@@ -1,0 +1,22 @@
+Processing Output Logs
+  
+2025-09-14T19:44:59  Course Generation: STARTED - YouTube URL: https://www.youtube.com/watch?v=DNGPAeX5z40
+2025-09-14T19:44:59  Video Metadata: EXTRACTING - Using YouTube API and fallback methods
+2025-09-14T19:45:00  Video Metadata: SUCCESS - Title: I Tested 7 AI Course Creation Tools... The Best One is AMAZING!
+2025-09-14T19:45:00  Apify MP4 Download: STARTING - Initiating YouTube video download actor
+2025-09-14T19:45:00  Apify MP4 Download: CONNECTING - Initiating Apify actor for video download
+2025-09-14T19:45:00  Apify MP4 Download: FAILED - Apify actor failed: You must rent a paid Actor in order to run it after its free trial has expired. To rent this Actor, go to https://console.apify.com/actors/xgXvf2RWYmPm769kB
+2025-09-14T19:45:00  YouTube Downloader Fallback: STARTING - Switching to yt-dlp free downloader due to Apify failure
+2025-09-14T19:45:00  YouTube Downloader Fallback: EXTRACTING - Getting video metadata with yt-dlp
+2025-09-14T19:45:30  YouTube Downloader Fallback: SUCCESS - Downloaded 44.4 MB in 30.0s using yt-dlp (free downloader)
+2025-09-14T19:45:30  Cloudinary Upload: STARTING - Uploading video to premium cloud storage
+2025-09-14T19:45:30  Cloudinary Upload: INFO - Using local file: /tmp/youtube_dl_in7zksbx/DNGPAeX5z40.mp4
+2025-09-14T19:45:42  Cloudinary Upload: FAILED - Upload failed: Cloudinary upload failed: Video is too large to process synchronously, please use an eager transformation with eager_async=true to resolve
+2025-09-14T19:45:42  Apify MP4 Download: SUCCESS - Video ready: unknown size - /video/DNGPAeX5z40.mp4
+2025-09-14T19:45:42  Transcript Extraction: EXTRACTING - Using multiple transcript sources
+2025-09-14T19:45:43  Transcript Extraction: FALLBACK - Using video description as transcript
+2025-09-14T19:45:43  AI Course Generation: GENERATING - Using OpenRouter, Claude, and fallback generators
+2025-09-14T19:45:54  AI Course Generation: SUCCESS - 7-day course created: 7-Day Learning Course: I Tested 7 AI Course Creation Tools... The Best One is AMAZING!
+2025-09-14T19:45:54  Course Generation: COMPLETED - Total time: 54.67s, Quality: C
+2025-09-14T19:45:54  Database: SAVING - Storing course and metrics to PostgreSQL
+2025-09-14T19:45:54  Database: SUCCESS - Course saved with ID: None
